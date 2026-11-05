@@ -1,0 +1,136 @@
+@import 'tailwindcss';
+
+/* ==========================================================================
+   DESIGN TOKENS
+   Toda la identidad visual vive aquí. Cambiar un color o una fuente en este
+   bloque lo actualiza en todo el sitio (Tailwind genera las utilidades:
+   bg-night, text-pink, font-display, etc.).
+   ========================================================================== */
+@theme inline {
+  /* --- Paleta: "local de noche con rótulo de neón" --- */
+  --color-night: #0b0a10;        /* Fondo principal, casi negro con un toque violeta */
+  --color-night-soft: #15131c;   /* Superficies: tarjetas, cabecera */
+  --color-line: #2a2633;         /* Bordes y separadores */
+  --color-cream: #f7efe3;        /* Texto principal (crema cálido, no blanco puro) */
+  --color-muted: #a59fb0;        /* Texto secundario */
+  --color-pink: #ff3d9a;         /* Neón principal (guiño a la "Rosa La Maravillosa") */
+  --color-amber: #ffb627;        /* Neón cálido: queso fundido / bombilla */
+  --color-cyan: #3df5ff;         /* Acento puntual, usar con moderación */
+
+  /* --- Tipografías (variables generadas por la Fonts API, ver astro.config.mjs) --- */
+  --font-neon: var(--font-tilt-neon);
+  --font-display: var(--font-anton);
+  --font-sans: var(--font-dm-sans);
+}
+
+/* ==========================================================================
+   BASE
+   ========================================================================== */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    /* Compensa la cabecera fija al saltar a un ancla (#carta, #visitanos...) */
+    scroll-padding-top: 5rem;
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-night font-sans text-cream antialiased;
+    /* Textura sutil de pared de ladrillo oscura detrás del neón */
+    background-image:
+      radial-gradient(ellipse at top, rgb(255 61 154 / 0.08), transparent 60%),
+      repeating-linear-gradient(0deg, transparent 0 38px, rgb(255 255 255 / 0.018) 38px 40px),
+      repeating-linear-gradient(90deg, transparent 0 78px, rgb(255 255 255 / 0.012) 78px 80px);
+  }
+
+  h1, h2, h3 {
+    @apply font-display uppercase tracking-wide;
+  }
+
+  /* Con Lenis activo, el scroll suave lo hace Lenis, no el navegador */
+  html.lenis {
+    scroll-behavior: auto;
+  }
+
+  /* Foco visible y coherente con la marca para navegación por teclado */
+  :focus-visible {
+    @apply outline-2 outline-offset-4 outline-amber;
+  }
+
+  ::selection {
+    @apply bg-pink text-night;
+  }
+}
+
+/* ==========================================================================
+   EFECTO NEÓN
+   Utilidades funcionales: aceptan cualquier color de la paleta.
+     <span class="neon-pink">Texto</span>      → texto con brillo de neón
+     <a class="glow-amber">Botón</a>          → borde/caja con brillo
+   El "tubo" se pinta casi blanco y el halo con el color elegido, que es como
+   se ve un neón real.
+   ========================================================================== */
+@utility neon-* {
+  --neon: --value(--color-*);
+  color: color-mix(in srgb, var(--neon) 30%, white);
+  text-shadow:
+    0 0 2px #fff,
+    0 0 6px var(--neon),
+    0 0 14px var(--neon),
+    0 0 32px var(--neon),
+    0 0 64px var(--neon);
+}
+
+@utility glow-* {
+  --neon: --value(--color-*);
+  border-color: var(--neon);
+  box-shadow:
+    0 0 4px var(--neon),
+    0 0 16px color-mix(in srgb, var(--neon) 60%, transparent),
+    inset 0 0 12px color-mix(in srgb, var(--neon) 35%, transparent);
+}
+
+/* Brillo para dibujos SVG de trazo (stroke="currentColor").
+   drop-shadow en CSS en lugar de filtros SVG: el navegador lo rasteriza una vez
+   y se puede mover con transform sin recalcular el desenfoque en cada frame. */
+@utility glow-stroke {
+  filter:
+    drop-shadow(0 0 1.5px currentColor)
+    drop-shadow(0 0 6px currentColor)
+    drop-shadow(0 0 16px color-mix(in srgb, currentColor 70%, transparent));
+}
+
+/* Parpadeo de neón viejo. Se aplica a letras sueltas para que no parpadee todo */
+@utility flicker {
+  animation: neon-flicker 6s infinite;
+}
+
+@keyframes neon-flicker {
+  0%, 18%, 22%, 25%, 53%, 57%, 100% { opacity: 1; }
+  20%, 24%, 55% { opacity: 0.35; }
+}
+
+/* Encendido inicial del rótulo al cargar la página */
+@utility power-on {
+  animation: neon-power-on 1.6s ease-out both;
+}
+
+@keyframes neon-power-on {
+  0%   { opacity: 0; }
+  10%  { opacity: 0.8; }
+  12%  { opacity: 0.1; }
+  20%  { opacity: 1; }
+  22%  { opacity: 0.2; }
+  40%, 100% { opacity: 1; }
+}
+
+/* Accesibilidad: sin parpadeos para quien prefiere menos movimiento */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,92 @@
+---
+/**
+ * Dibujo en neón de una capa de la burger (pan, salsa, queso…).
+ * Todas las capas comparten 320 unidades de ancho para que encajen al apilarlas;
+ * el alto varía según el ingrediente. Trazo con currentColor + glow-stroke.
+ */
+import type { BurgerLayer, NeonColor } from '../data/menu';
+
+interface Props {
+  kind: BurgerLayer['kind'];
+  color: NeonColor;
+  class?: string;
+}
+
+const { kind, color, class: className = '' } = Astro.props;
+
+// Clases completas por color (Tailwind solo genera las que ve escritas)
+const colorClass: Record<NeonColor, string> = {
+  pink: 'text-pink',
+  amber: 'text-amber',
+  cyan: 'text-cyan',
+  cream: 'text-cream',
+};
+
+/** Onda de salsa: repite una curva de 35 unidades a lo ancho */
+const sauceWave = `M20 13 ${Array.from({ length: 8 }, () => 'q 17.5 -9 35 0').join(' ')}`;
+
+// Alto del viewBox de cada capa
+const heights: Record<BurgerLayer['kind'], number> = {
+  'bun-top': 110,
+  sauce: 26,
+  'onion-ring': 44,
+  cheese: 52,
+  patty: 44,
+  'bun-bottom': 56,
+};
+---
+
+<svg
+  class:list={['glow-stroke overflow-visible', colorClass[color], className]}
+  viewBox={`0 0 320 ${heights[kind]}`}
+  fill="none"
+  stroke="currentColor"
+  stroke-width="5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  aria-hidden="true"
+>
+  {
+    kind === 'bun-top' && (
+      <>
+        <path d="M24 98 C24 18 296 18 296 98 Q296 106 288 106 L32 106 Q24 106 24 98 Z" />
+        {/* Sésamo */}
+        <path d="M100 56 l10 -5 M140 44 l10 2 M182 50 l9 -4 M120 76 l10 3 M162 72 l10 -2 M204 74 l8 4" />
+      </>
+    )
+  }
+
+  {kind === 'sauce' && <path d={sauceWave} />}
+
+  {
+    kind === 'onion-ring' && (
+      <>
+        <ellipse cx="160" cy="22" rx="128" ry="17" />
+        <ellipse cx="160" cy="22" rx="88" ry="8" />
+      </>
+    )
+  }
+
+  {
+    kind === 'cheese' && (
+      // Loncha con goterones de queso fundido
+      <path d="M14 8 L306 8 L292 20 L280 40 L268 20 L222 20 L210 46 L198 20 L136 20 L124 36 L112 20 L60 20 L48 32 L36 20 Z" />
+    )
+  }
+
+  {
+    kind === 'patty' && (
+      <>
+        <rect x="22" y="6" width="276" height="32" rx="16" />
+        {/* Marcas de la plancha / bordes crujientes del smash */}
+        <path d="M70 22 h30 M140 18 h24 M200 24 h36" stroke-width="3" />
+      </>
+    )
+  }
+
+  {
+    kind === 'bun-bottom' && (
+      <path d="M30 8 L290 8 Q296 8 296 14 C296 40 280 50 258 50 L62 50 C40 50 24 40 24 14 Q24 8 30 8 Z" />
+    )
+  }
+</svg>

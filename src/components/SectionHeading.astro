@@ -1,0 +1,22 @@
+---
+/**
+ * Título de sección reutilizable: antetítulo en neón + titular display.
+ * El id permite enlazar el título con aria-labelledby en la <section>.
+ */
+interface Props {
+  id: string;
+  eyebrow: string;
+  title: string;
+  accent?: 'pink' | 'amber' | 'cyan';
+}
+
+const { id, eyebrow, title, accent = 'pink' } = Astro.props;
+
+// Clases completas (no interpoladas) para que Tailwind las detecte al compilar
+const eyebrowClass = { pink: 'neon-pink', amber: 'neon-amber', cyan: 'neon-cyan' }[accent];
+---
+
+<header class="mb-12 text-center" data-reveal>
+  <p class:list={['font-neon text-2xl', eyebrowClass]}>{eyebrow}</p>
+  <h2 id={id} class="mt-2 text-4xl sm:text-5xl">{title}</h2>
+</header>

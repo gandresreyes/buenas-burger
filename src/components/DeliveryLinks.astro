@@ -1,0 +1,41 @@
+---
+/**
+ * Botones a las plataformas de reparto (Glovo, Just Eat…) con su logo.
+ * Los enlaces salen de site.delivery; aquí solo se asocia cada id con su logo.
+ */
+import { site } from '../data/site';
+import GlovoLogo from '../assets/delivery/glovo.svg';
+import JustEatLogo from '../assets/delivery/justeat.svg';
+
+interface Props {
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+
+const logos = { glovo: GlovoLogo, justeat: JustEatLogo };
+---
+
+<ul class:list={['flex flex-wrap justify-center gap-4', className]}>
+  {
+    site.delivery.map(({ id, name, url }) => {
+      const Logo = logos[id];
+      return (
+        <li>
+          <a
+            href={url}
+            target="_blank"
+            rel="noopener"
+            class="flex items-center gap-3 rounded-full border-2 border-line bg-night-soft px-6 py-3 font-bold transition-colors hover:border-amber hover:text-amber"
+          >
+            <Logo class="size-6" aria-hidden="true" />
+            <span>
+              Pide en {name}
+              <span class="sr-only"> (se abre en otra pestaña)</span>
+            </span>
+          </a>
+        </li>
+      );
+    })
+  }
+</ul>

@@ -1,0 +1,27 @@
+---
+/**
+ * Página de la carta completa (/carta). Una sección por categoría de src/data/menu.ts.
+ */
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import MenuIntro from '../components/MenuIntro.astro';
+import MenuCategory from '../components/MenuCategory.astro';
+import Footer from '../components/Footer.astro';
+import { menu } from '../data/menu';
+import { site } from '../data/site';
+
+// Un neón distinto por categoría para que cada antetítulo tenga su color
+const accents = ['pink', 'amber', 'cyan'] as const;
+---
+
+<Layout
+  title={`Carta · ${site.name}`}
+  description={`Carta de ${site.name} en ${site.address.city}: smash burgers, entrantes y bebidas con precios. Todas las burgers se pueden preparar sin gluten.`}
+>
+  <Header />
+  <main id="contenido">
+    <MenuIntro />
+    {menu.map((category, i) => <MenuCategory category={category} accent={accents[i % accents.length]} />)}
+  </main>
+  <Footer />
+</Layout>

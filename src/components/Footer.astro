@@ -1,0 +1,27 @@
+---
+/**
+ * Pie de página con el sello de la marca y datos básicos.
+ */
+import { Image } from 'astro:assets';
+import { site } from '../data/site';
+import logoSello from '../assets/brand/logo-sello.png';
+
+const year = new Date().getFullYear();
+---
+
+<footer class="border-t border-line px-4 py-12 text-center sm:px-6">
+  <Image src={logoSello} alt={site.name} class="mx-auto h-28 w-auto" />
+  <p class="mt-4 text-sm text-muted">
+    {site.address.street} · {site.address.postalCode} {site.address.city}
+  </p>
+
+  {
+    site.social.instagram && (
+      <a href={site.social.instagram} target="_blank" rel="noopener" class="mt-4 inline-block text-sm hover:text-pink">
+        Instagram
+      </a>
+    )
+  }
+
+  <p class="mt-6 text-xs text-muted/70">© {year} {site.name}. Todos los derechos reservados.</p>
+</footer>

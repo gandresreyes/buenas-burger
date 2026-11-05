@@ -1,11 +1,28 @@
 ---
-import Welcome from '../components/Welcome.astro';
+/**
+ * Página de inicio (one-page). El orden de las secciones es el orden en pantalla;
+ * cada una vive en su propio componente dentro de src/components/.
+ */
 import Layout from '../layouts/Layout.astro';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+import Header from '../components/Header.astro';
+import Hero from '../components/Hero.astro';
+import BurgerAnatomy from '../components/BurgerAnatomy.astro';
+import Menu from '../components/Menu.astro';
+import About from '../components/About.astro';
+import HowToOrder from '../components/HowToOrder.astro';
+import Visit from '../components/Visit.astro';
+import Footer from '../components/Footer.astro';
 ---
 
 <Layout>
-	<Welcome />
+  <Header />
+  <main id="contenido">
+    <Hero />
+    <BurgerAnatomy />
+    <Menu />
+    <About />
+    <HowToOrder />
+    <Visit />
+  </main>
+  <Footer />
 </Layout>

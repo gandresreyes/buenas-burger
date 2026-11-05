@@ -1,0 +1,44 @@
+---
+/**
+ * Sección "Cómo pedir": el local funciona con pedido en barra y avisador,
+ * así que lo explicamos para que nadie espere a que le tomen nota en la mesa.
+ */
+import SectionHeading from './SectionHeading.astro';
+import DeliveryLinks from './DeliveryLinks.astro';
+
+const steps = [
+  { title: 'Pide en barra', text: 'Elige tu burger y paga directamente en la barra.' },
+  { title: 'Coge tu avisador', text: 'Te damos un llamador. Busca mesa y ponte cómodo.' },
+  { title: 'Recógela caliente', text: 'Cuando suene, tu burger está lista. Recién salida de la plancha.' },
+];
+---
+
+<section id="como-pedir" aria-labelledby="como-pedir-title" class="border-y border-line bg-night-soft/50 px-4 py-20 sm:px-6">
+  <div class="mx-auto max-w-5xl">
+    <SectionHeading id="como-pedir-title" eyebrow="Fácil y rápido" title="Cómo pedir" accent="cyan" />
+
+    <ol class="grid gap-6 md:grid-cols-3">
+      {
+        steps.map(({ title, text }, i) => (
+          <li class="rounded-2xl border-2 border-line p-6 text-center" data-reveal>
+            <span
+              class="mx-auto grid size-14 place-items-center rounded-full border-2 font-display text-2xl text-cyan glow-cyan"
+              aria-hidden="true"
+            >
+              {i + 1}
+            </span>
+            <h3 class="mt-5 text-xl">{title}</h3>
+            <p class="mt-2 text-muted">{text}</p>
+          </li>
+        ))
+      }
+    </ol>
+
+    <!-- Alternativa al local: pedido a domicilio -->
+    <div class="mt-16 text-center" data-reveal>
+      <h3 class="text-2xl">¿Mejor en casa?</h3>
+      <p class="mt-2 text-muted">También te la llevamos a domicilio.</p>
+      <DeliveryLinks class="mt-6" />
+    </div>
+  </div>
+</section>

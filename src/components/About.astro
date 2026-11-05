@@ -1,0 +1,44 @@
+---
+/**
+ * Sección "Nosotros": qué hace especial a la casa, en tres puntos.
+ */
+import SectionHeading from './SectionHeading.astro';
+
+const features = [
+  {
+    title: 'Smash de verdad',
+    text: 'Blend de vaca madurada aplastado en la plancha bien caliente. Bordes crujientes, centro jugoso.',
+    color: 'text-pink',
+  },
+  {
+    title: 'Pan de patata',
+    text: 'Esponjoso y ligeramente dulce, aguanta la salsa sin deshacerse hasta el último bocado.',
+    color: 'text-amber',
+  },
+  {
+    title: 'Sin gluten',
+    text: 'Cualquier burger de la carta se puede adaptar. Pregúntanos y te la preparamos.',
+    color: 'text-cyan',
+  },
+];
+---
+
+<section id="nosotros" aria-labelledby="nosotros-title" class="px-4 py-20 sm:px-6">
+  <div class="mx-auto max-w-6xl">
+    <SectionHeading id="nosotros-title" eyebrow="Hechas con cariño" title="Por qué son buenas" accent="amber" />
+
+    <ul class="grid gap-10 md:grid-cols-3">
+      {
+        features.map(({ title, text, color }, i) => (
+          <li class="text-center md:text-left" data-reveal>
+            <span class:list={['font-neon text-5xl', color]} style="text-shadow: 0 0 18px currentColor" aria-hidden="true">
+              0{i + 1}
+            </span>
+            <h3 class="mt-3 text-2xl">{title}</h3>
+            <p class="mt-3 text-muted">{text}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>

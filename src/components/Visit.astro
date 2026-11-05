@@ -1,0 +1,70 @@
+---
+/**
+ * Sección "Visítanos": dirección, horario y contacto.
+ * En lugar de incrustar Google Maps (cookies de terceros + peso) enlazamos a la
+ * ruta; así no hace falta banner de cookies y la página carga más rápido.
+ */
+import { site, openingHours } from '../data/site';
+import { formatShift } from '../lib/hours';
+import OpenSign from './OpenSign.astro';
+import SectionHeading from './SectionHeading.astro';
+
+const { address, contact } = site;
+---
+
+<section id="visitanos" aria-labelledby="visitanos-title" class="px-4 py-20 sm:px-6">
+  <div class="mx-auto max-w-5xl">
+    <SectionHeading id="visitanos-title" eyebrow="Te esperamos" title="Visítanos" />
+
+    <div class="grid gap-6 md:grid-cols-3">
+      <!-- Dirección -->
+      <div class="rounded-2xl border-2 border-line bg-night-soft p-6" data-reveal>
+        <h3 class="text-xl text-pink">Dónde</h3>
+        <address class="mt-4 not-italic">
+          {address.street}<br />
+          {address.postalCode} {address.city}
+        </address>
+        <a
+          href={address.mapsUrl}
+          target="_blank"
+          rel="noopener"
+          class="mt-4 inline-block font-bold text-amber underline-offset-4 hover:underline"
+        >
+          Abrir en Google Maps →
+        </a>
+      </div>
+
+      <!-- Horario -->
+      <div class="rounded-2xl border-2 border-line bg-night-soft p-6" data-reveal>
+        <h3 class="text-xl text-pink">Horario</h3>
+        <dl class="mt-4 space-y-2">
+          {
+            openingHours.map(({ label, shifts }) => (
+              <div>
+                <dt class="text-muted">{label}</dt>
+                {shifts.map((shift) => (
+                  <dd>{formatShift(shift)}</dd>
+                ))}
+              </div>
+            ))
+          }
+        </dl>
+        <div class="mt-4"><OpenSign /></div>
+      </div>
+
+      <!-- Contacto -->
+      <div class="rounded-2xl border-2 border-line bg-night-soft p-6" data-reveal>
+        <h3 class="text-xl text-pink">Contacto</h3>
+        <ul class="mt-4 space-y-2">
+          <li>
+            <a href={`tel:${contact.phoneHref}`} class="hover:text-amber">{contact.phone}</a>
+          </li>
+          <li>
+            <a href={`mailto:${contact.email}`} class="break-all hover:text-amber">{contact.email}</a>
+          </li>
+        </ul>
+        <p class="mt-4 text-sm text-muted">No hacemos reservas: ven directamente y pide en barra.</p>
+      </div>
+    </div>
+  </div>
+</section>

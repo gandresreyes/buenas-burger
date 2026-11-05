@@ -1,0 +1,90 @@
+---
+/**
+ * Cabecera fija con logo y navegación.
+ * En móvil, la navegación se despliega con un botón accesible (aria-expanded).
+ */
+import { Image } from 'astro:assets';
+import { site } from '../data/site';
+import logoTexto from '../assets/brand/logo-texto.png';
+
+// Fuera de la portada, las anclas tienen que volver a ella: "/#nosotros"
+const isHome = Astro.url.pathname === '/';
+const home = isHome ? '' : '/';
+const currentPath = Astro.url.pathname.replace(/\/$/, '');
+
+// Las anclas deben coincidir con los id de cada sección en index.astro
+const links = [
+  { href: '/carta', label: 'Carta' },
+  { href: `${home}#nosotros`, label: 'Nosotros' },
+  { href: `${home}#como-pedir`, label: 'Cómo pedir' },
+  { href: `${home}#visitanos`, label: 'Visítanos' },
+];
+---
+
+<header class="fixed inset-x-0 top-0 z-40 border-b border-line/60 bg-night/80 backdrop-blur-md">
+  <div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
+    <a href={isHome ? '#inicio' : '/'} class="shrink-0" aria-label={`${site.name}, ir al inicio`}>
+      <Image src={logoTexto} alt="" class="h-12 w-auto" loading="eager" />
+    </a>
+
+    <!-- Botón hamburguesa (solo móvil) -->
+    <button
+      type="button"
+      class="grid size-10 place-items-center rounded-md border border-line md:hidden"
+      aria-controls="main-nav"
+      aria-expanded="false"
+      data-nav-toggle
+    >
+      <span class="sr-only">Abrir menú</span>
+      <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M4 7h16M4 12h16M4 17h16" stroke-linecap="round"></path>
+      </svg>
+    </button>
+
+    <nav
+      id="main-nav"
+      aria-label="Principal"
+      class="absolute inset-x-0 top-16 hidden border-b border-line bg-night-soft md:static md:block md:border-0 md:bg-transparent"
+      data-nav
+    >
+      <ul class="flex flex-col px-4 py-2 md:flex-row md:gap-8 md:p-0">
+        {
+          links.map(({ href, label }) => (
+            <li>
+              <a
+                href={href}
+                aria-current={href === currentPath ? 'page' : undefined}
+                class="block py-3 text-sm font-medium tracking-widest text-muted uppercase transition-colors hover:text-cream aria-[current=page]:text-amber md:py-0"
+              >
+                {label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<script>
+  const toggle = document.querySelector<HTMLButtonElement>('[data-nav-toggle]');
+  const nav = document.querySelector<HTMLElement>('[data-nav]');
+
+  if (toggle && nav) {
+    const setOpen = (open: boolean) => {
+      toggle.setAttribute('aria-expanded', String(open));
+      toggle.querySelector('.sr-only')!.textContent = open ? 'Cerrar menú' : 'Abrir menú';
+      nav.classList.toggle('hidden', !open);
+    };
+
+    toggle.addEventListener('click', () => setOpen(toggle.getAttribute('aria-expanded') !== 'true'));
+
+    // Cierra el menú al elegir un enlace o al pulsar Escape
+    nav.addEventListener('click', (e) => {
+      if ((e.target as HTMLElement).closest('a')) setOpen(false);
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') setOpen(false);
+    });
+  }
+</script>

@@ -1,0 +1,39 @@
+---
+/**
+ * Sección "Carta" de la portada: adelanto con una selección de burgers
+ * (homePicks en src/data/menu.ts) y enlace a la carta completa en /carta.
+ */
+import { homePicks } from '../data/menu';
+import MenuCard from './MenuCard.astro';
+import SectionHeading from './SectionHeading.astro';
+---
+
+<section id="carta" aria-labelledby="carta-title" class="px-4 py-20 sm:px-6">
+  <div class="mx-auto max-w-6xl">
+    <SectionHeading id="carta-title" eyebrow="Recién aplastadas" title="Nuestra carta" />
+
+    <ul class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      {
+        homePicks.map((burger) => (
+          <li data-reveal>
+            <MenuCard item={burger} />
+          </li>
+        ))
+      }
+    </ul>
+
+    <div class="mt-12 text-center" data-reveal>
+      <a
+        href="/carta"
+        class="inline-block rounded-full border-2 px-7 py-3 font-display text-lg tracking-wider text-cream uppercase glow-pink transition-transform hover:-translate-y-0.5"
+      >
+        Ver la carta completa
+      </a>
+    </div>
+
+    <p class="mt-10 text-center text-muted" data-reveal>
+      <strong class="text-cream">Todas nuestras burgers se pueden preparar sin gluten.</strong>
+      Si tienes alguna alergia, avísanos en barra al pedir.
+    </p>
+  </div>
+</section>

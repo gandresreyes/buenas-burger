@@ -1,0 +1,37 @@
+---
+/**
+ * Cartel de neón "Abierto / Cerrado".
+ * El HTML sale neutro desde el servidor (la página es estática) y un pequeño
+ * script calcula el estado real en el navegador con la hora de Madrid.
+ */
+---
+
+<p class="open-sign inline-flex items-center gap-2 rounded-full border border-line px-4 py-1.5 text-sm" data-open-sign>
+  <span class="size-2.5 rounded-full bg-muted" data-dot aria-hidden="true"></span>
+  <span data-label>Consulta nuestro horario</span>
+</p>
+
+<script>
+  import { isOpen } from '../lib/hours';
+
+  function update() {
+    const open = isOpen();
+
+    document.querySelectorAll<HTMLElement>('[data-open-sign]').forEach((sign) => {
+      const dot = sign.querySelector<HTMLElement>('[data-dot]');
+      const label = sign.querySelector<HTMLElement>('[data-label]');
+      if (!dot || !label) return;
+
+      label.textContent = open ? 'Abierto ahora' : 'Cerrado ahora';
+      sign.classList.toggle('glow-cyan', open);
+      sign.classList.toggle('text-cyan', open);
+      sign.classList.toggle('text-muted', !open);
+      dot.classList.toggle('bg-cyan', open);
+      dot.classList.toggle('bg-muted', !open);
+    });
+  }
+
+  update();
+  // Revisa cada minuto por si cambia el estado con la página abierta
+  setInterval(update, 60_000);
+</script>

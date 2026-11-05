@@ -1,0 +1,188 @@
+---
+/**
+ * "Anatomía" de la burger bandera: animación de despiece ligada al scroll.
+ *
+ * Cómo funciona:
+ * 1. El HTML se pinta YA DESPIEZADO (capas separadas y etiquetas visibles).
+ *    Es el estado final: lo que ve quien no tiene JS o prefiere menos movimiento.
+ * 2. Con movimiento permitido, GSAP fija (pin) la sección y, al hacer scroll,
+ *    lleva cada capa desde la posición "montada" (todas apiladas) a su sitio,
+ *    y después enciende las etiquetas una a una.
+ * 3. `scrub` ata la animación a la barra de scroll: hacia arriba se vuelve a montar.
+ */
+import { featuredBurger as burger } from '../data/menu';
+import BurgerLayerArt from './BurgerLayerArt.astro';
+
+const layers = burger.layers ?? [];
+
+// Color de la línea guía de cada etiqueta (clases completas para Tailwind)
+const lineColor = { pink: 'bg-pink', amber: 'bg-amber', cyan: 'bg-cyan', cream: 'bg-cream' };
+---
+
+<section id="la-rosa" aria-labelledby="anatomia-title" data-anatomy>
+  <div
+    class="relative flex min-h-svh items-center overflow-hidden px-4 pt-20 pb-10 sm:px-6"
+    data-anatomy-stage
+  >
+    <!-- Halo rosa detrás de la burger; crece mientras se despieza -->
+    <div
+      class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_65%_50%,rgb(255_61_154/0.18),transparent_55%)]"
+      aria-hidden="true"
+      data-anatomy-halo
+    >
+    </div>
+
+    <div class="relative mx-auto grid w-full max-w-6xl items-center gap-8 md:grid-cols-[1fr_1.3fr] md:gap-12">
+      <header class="text-center md:text-left">
+        <p class="font-neon text-xl neon-amber sm:text-2xl">La burger de la casa</p>
+        <h2 id="anatomia-title" class="mt-3 font-neon text-4xl leading-tight normal-case neon-pink sm:text-6xl lg:text-7xl">
+          {burger.name}
+        </h2>
+
+        {
+          burger.tags && (
+            <ul class="mt-5 flex flex-wrap justify-center gap-1.5 sm:gap-2 md:justify-start [@media(max-height:700px)]:hidden" aria-label="Destacados">
+              {burger.tags.map((tag) => (
+                <li class="rounded-full border border-amber/60 px-2.5 py-1 text-[10px] font-bold sm:px-3 sm:text-[11px] tracking-widest text-amber uppercase">
+                  {tag}
+                </li>
+              ))}
+            </ul>
+          )
+        }
+
+        <p class="mt-6 hidden max-w-sm text-muted md:block">
+          Nuestra candidata al VI Campeonato de España de Hamburguesas. Y, con diferencia, la que más pedís.
+        </p>
+
+        <!-- Pista de scroll: solo tiene sentido con la animación activa (la muestra el script) -->
+        <p class="invisible mt-4 text-xs md:mt-6 font-bold tracking-[0.3em] text-muted uppercase" data-anatomy-hint>
+          Desliza para desmontarla ↓
+        </p>
+      </header>
+
+      <!--
+        Columna de capas. Variables CSS:
+          --w     ancho de la burger (limitado por alto de pantalla para que quepa entera)
+          --label ancho de las etiquetas en móvil: todo el hueco libre a la derecha
+          --gap   separación entre capas en el estado despiezado
+        Cada capa tiene una altura mínima para que las finas (salsas) dejen sitio
+        a su etiqueta; el dibujo va centrado dentro. El padding derecho deja hueco a las etiquetas, que van en posición absoluta.
+      -->
+      <div
+        class="mx-auto w-max pr-[calc(var(--label)+0.75rem)] [--label:calc(100vw-var(--w)-3.5rem)] [--w:min(36vw,260px,28svh)] md:pr-[13.5rem] lg:pr-84"
+      >
+        <ol
+          class="relative flex flex-col gap-(--gap) [--gap:clamp(4px,1.4svh,14px)] md:[--gap:clamp(10px,2.8svh,28px)]"
+          aria-label="Ingredientes, de arriba abajo"
+          data-anatomy-layers
+        >
+          {
+            layers.map((layer) => (
+              <li class="relative flex min-h-9 w-(--w) items-center will-change-transform md:min-h-11" data-layer>
+                <div class="w-full" data-layer-art>
+                  <BurgerLayerArt kind={layer.kind} color={layer.color} class="block w-full" />
+                </div>
+
+                <span
+                  class="absolute top-1/2 left-full ml-3 flex w-(--label) -translate-y-1/2 items-center gap-3 md:ml-6 md:w-48 lg:w-auto lg:whitespace-nowrap"
+                  data-layer-label
+                >
+                  <span
+                    class:list={['h-px w-5 shrink-0 origin-left md:w-10', lineColor[layer.color]]}
+                    aria-hidden="true"
+                    data-layer-line
+                  />
+                  <span class="text-[11px] leading-snug font-bold tracking-wide text-cream uppercase sm:text-sm sm:tracking-widest">
+                    {layer.label}
+                  </span>
+                </span>
+              </li>
+            ))
+          }
+        </ol>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  import { gsap, MOTION_OK } from '../lib/motion';
+
+  const section = document.querySelector<HTMLElement>('[data-anatomy]');
+
+  if (section) {
+    // matchMedia: si el usuario activa "reducir movimiento", GSAP deshace todo solo
+    gsap.matchMedia().add(MOTION_OK, () => {
+      const stage = section.querySelector<HTMLElement>('[data-anatomy-stage]')!;
+      const list = section.querySelector<HTMLElement>('[data-anatomy-layers]')!;
+      const hint = section.querySelector<HTMLElement>('[data-anatomy-hint]');
+      const halo = section.querySelector<HTMLElement>('[data-anatomy-halo]');
+      const layers = gsap.utils.toArray<HTMLElement>('[data-layer]', section);
+      const arts = gsap.utils.toArray<HTMLElement>('[data-layer-art]', section);
+      const labels = gsap.utils.toArray<HTMLElement>('[data-layer-label]', section);
+      const lines = gsap.utils.toArray<HTMLElement>('[data-layer-line]', section);
+
+      /**
+       * Desplazamiento Y que lleva cada capa de su sitio "despiezado" (el del HTML)
+       * a la burger montada: dibujos pegados, ligeramente solapados y centrados
+       * en la columna. Se mide el dibujo (no el <li>, que tiene altura mínima).
+       * offsetTop/offsetHeight ignoran los transform, así que la medida es
+       * estable aunque la animación esté a medias.
+       */
+      const stackedY = (index: number) => {
+        const overlap = layers[0].offsetWidth * 0.02;
+        const heights = arts.map((art) => art.offsetHeight);
+        const stackHeight = heights.reduce((sum, h) => sum + h, 0) - overlap * (layers.length - 1);
+
+        let top = (list.offsetHeight - stackHeight) / 2;
+        for (let i = 0; i < index; i++) top += heights[i] - overlap;
+
+        const artTop = layers[index].offsetTop + arts[index].offsetTop;
+        return top - artTop;
+      };
+
+      if (hint) gsap.set(hint, { autoAlpha: 1 });
+
+      const tl = gsap.timeline({
+        defaults: { ease: 'none' },
+        scrollTrigger: {
+          trigger: stage,
+          start: 'top top',
+          end: '+=220%', // cuánto scroll dura el despiece (2,2 pantallas)
+          pin: true,
+          scrub: 1, // 1 s de "inercia" para que siga al scroll con suavidad
+          invalidateOnRefresh: true, // recalcula stackedY al cambiar el tamaño
+          anticipatePin: 1,
+          // Se calcula antes que el resto: su pin añade espacio que desplaza
+          // a todas las secciones de debajo (y a sus animaciones de aparición)
+          refreshPriority: 1,
+        },
+      });
+
+      tl
+        // 1. Las capas se separan desde el centro hacia fuera, con un leve giro
+        .fromTo(
+          layers,
+          { y: (i) => stackedY(i), rotation: 0 },
+          {
+            y: 0,
+            rotation: (i) => (i % 2 ? 1.5 : -1.5),
+            duration: 1,
+            ease: 'power2.inOut',
+            stagger: { each: 0.03, from: 'center' },
+          },
+          0.15,
+        )
+        // El halo crece a la vez
+        .fromTo(halo, { autoAlpha: 0, scale: 0.7 }, { autoAlpha: 1, scale: 1.1, duration: 1.2 }, 0)
+        // La pista desaparece en cuanto se empieza a hacer scroll
+        .to(hint, { autoAlpha: 0, duration: 0.15 }, 0.05)
+        // 2. Se "encienden" las etiquetas: primero la línea guía, luego el texto
+        .fromTo(lines, { scaleX: 0 }, { scaleX: 1, duration: 0.25, stagger: 0.06 }, 0.8)
+        .fromTo(labels, { autoAlpha: 0, x: -10 }, { autoAlpha: 1, x: 0, duration: 0.3, stagger: 0.06 }, 0.85)
+        // 3. Pausa con la burger despiezada antes de soltar la sección
+        .to({}, { duration: 0.5 });
+    });
+  }
+</script>

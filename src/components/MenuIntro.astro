@@ -1,0 +1,44 @@
+---
+/**
+ * Cabecera de la página /carta: título, índice de categorías y avisos
+ * (sin gluten, cómo se pide). Los enlaces del índice saltan a cada MenuCategory.
+ */
+import { menu } from '../data/menu';
+import DeliveryLinks from './DeliveryLinks.astro';
+---
+
+<section aria-labelledby="carta-page-title" class="px-4 pt-32 pb-8 text-center sm:px-6">
+  <p class="font-neon text-2xl neon-amber">Buenas Burgers</p>
+  <h1 id="carta-page-title" class="mt-2 text-5xl sm:text-7xl">Nuestra carta</h1>
+
+  <p class="mx-auto mt-6 max-w-xl text-muted">
+    Se pide y se paga en barra: te damos un avisador y te llamamos cuando esté lista.
+    <strong class="text-cream">Todas las burgers se pueden preparar sin gluten</strong>; si tienes alguna alergia,
+    avísanos al pedir.
+  </p>
+
+  <p class="mt-8 text-sm text-muted">¿Prefieres pedir a domicilio?</p>
+  <DeliveryLinks class="mt-4" />
+
+  <nav aria-label="Categorías de la carta" class="mt-10">
+    <ul class="flex flex-wrap justify-center gap-3">
+      {
+        menu.map(({ id, title }) => (
+          <li>
+            <a
+              href={`#${id}`}
+              class="block rounded-full border-2 border-line px-5 py-2 text-sm font-bold tracking-widest text-muted uppercase transition-colors hover:border-amber hover:text-amber"
+            >
+              {title}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
+</section>
+
+<!-- Activa el scroll suave y las apariciones (data-reveal), igual que en la portada -->
+<script>
+  import '../lib/motion';
+</script>
