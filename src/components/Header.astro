@@ -21,7 +21,7 @@ const links = [
 ];
 ---
 
-<header class="fixed inset-x-0 top-0 z-40 border-b border-line/60 bg-night/80 backdrop-blur-md">
+<header class="fixed inset-x-0 top-0 z-40 border-b border-line/60 bg-ink/85 backdrop-blur-md">
   <div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
     <a href={isHome ? '#inicio' : '/'} class="shrink-0" aria-label={`${site.name}, ir al inicio`}>
       <Image src={logoTexto} alt="" class="h-12 w-auto" loading="eager" />
@@ -44,7 +44,7 @@ const links = [
     <nav
       id="main-nav"
       aria-label="Principal"
-      class="absolute inset-x-0 top-16 hidden border-b border-line bg-night-soft md:static md:block md:border-0 md:bg-transparent"
+      class="absolute inset-x-0 top-16 hidden border-b border-line bg-ink-soft md:static md:block md:border-0 md:bg-transparent"
       data-nav
     >
       <ul class="flex flex-col px-4 py-2 md:flex-row md:gap-8 md:p-0">
@@ -54,7 +54,7 @@ const links = [
               <a
                 href={href}
                 aria-current={href === currentPath ? 'page' : undefined}
-                class="block py-3 text-sm font-medium tracking-widest text-muted uppercase transition-colors hover:text-cream aria-[current=page]:text-amber md:py-0"
+                class="block py-3 font-mono text-sm font-bold tracking-wider text-muted uppercase transition-colors hover:text-paper aria-[current=page]:text-mustard md:py-0"
               >
                 {label}
               </a>

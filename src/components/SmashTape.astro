@@ -1,0 +1,43 @@
+---
+/**
+ * Dos cintas cruzadas, como precinto, con los lemas de la casa.
+ * Al hacer scroll se deslizan en sentidos opuestos. Es decorativa
+ * (aria-hidden): todo lo que dice está también en el resto de la página.
+ */
+const front = ['Smash de verdad', 'Todas sin gluten', 'Pan de patata', 'Pide en barra', 'Salsas de la casa'];
+const back = ['Rosa La Maravillosa','Siempre doble', 'Recién aplastadas', 'Vaca madurada'];
+
+// Se repite el texto para que la cinta no se quede corta al desplazarse
+const repeat = (words: string[]) => Array.from({ length: 4 }, () => words).flat();
+---
+
+<div class="relative -my-6 overflow-hidden py-14 sm:py-16" aria-hidden="true" data-tape>
+  <div
+    class="absolute inset-x-[-10%] top-1/2 -translate-y-1/2 rotate-3 bg-ketchup py-2 font-display text-lg whitespace-nowrap text-paper uppercase sm:text-2xl"
+  >
+    <p class="flex w-max gap-6" data-tape-track="back">
+      {repeat(back).map((word) => <span>{word} <span class="text-ink">✸</span></span>)}
+    </p>
+  </div>
+
+  <div
+    class="relative inset-x-[-10%] w-[120%] -rotate-2 border-y-2 border-ink bg-mustard py-3 font-display text-xl whitespace-nowrap text-ink uppercase sm:text-3xl"
+  >
+    <p class="flex w-max gap-6" data-tape-track="front">
+      {repeat(front).map((word) => <span>{word} <span class="text-ketchup">✸</span></span>)}
+    </p>
+  </div>
+</div>
+
+<script>
+  import { gsap, MOTION_OK } from '../lib/motion';
+
+  gsap.matchMedia().add(MOTION_OK, () => {
+    const tape = document.querySelector('[data-tape]');
+    if (!tape) return;
+
+    const scroll = { trigger: tape, start: 'top bottom', end: 'bottom top', scrub: true };
+    gsap.fromTo('[data-tape-track="front"]', { xPercent: 0 }, { xPercent: -25, ease: 'none', scrollTrigger: scroll });
+    gsap.fromTo('[data-tape-track="back"]', { xPercent: -25 }, { xPercent: 0, ease: 'none', scrollTrigger: scroll });
+  });
+</script>

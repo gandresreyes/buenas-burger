@@ -1,12 +1,12 @@
 ---
 /**
- * Cartel de neón "Abierto / Cerrado".
+ * Etiqueta "Abierto / Cerrado".
  * El HTML sale neutro desde el servidor (la página es estática) y un pequeño
  * script calcula el estado real en el navegador con la hora de Madrid.
  */
 ---
 
-<p class="open-sign inline-flex items-center gap-2 rounded-full border border-line px-4 py-1.5 text-sm" data-open-sign>
+<p class="inline-flex items-center gap-2 rounded-full border-2 border-line px-4 py-1.5 font-mono text-sm font-bold uppercase" data-open-sign>
   <span class="size-2.5 rounded-full bg-muted" data-dot aria-hidden="true"></span>
   <span data-label>Consulta nuestro horario</span>
 </p>
@@ -23,10 +23,11 @@
       if (!dot || !label) return;
 
       label.textContent = open ? 'Abierto ahora' : 'Cerrado ahora';
-      sign.classList.toggle('glow-cyan', open);
-      sign.classList.toggle('text-cyan', open);
+      sign.classList.toggle('border-pickle', open);
+      sign.classList.toggle('border-line', !open);
+      sign.classList.toggle('text-pickle', open);
       sign.classList.toggle('text-muted', !open);
-      dot.classList.toggle('bg-cyan', open);
+      dot.classList.toggle('bg-pickle', open);
       dot.classList.toggle('bg-muted', !open);
     });
   }

@@ -1,22 +1,32 @@
 ---
 /**
- * Título de sección reutilizable: antetítulo en neón + titular display.
+ * Título de sección reutilizable: antetítulo como etiqueta de pegatina
+ * (ligeramente torcida) + titular display.
  * El id permite enlazar el título con aria-labelledby en la <section>.
+ * `accent` es el color de la etiqueta: elegir uno que contraste con el fondo
+ * de la sección (p. ej. `ink` sobre una sección mostaza).
  */
 interface Props {
   id: string;
   eyebrow: string;
   title: string;
-  accent?: 'pink' | 'amber' | 'cyan';
+  accent?: 'mustard' | 'ketchup' | 'pickle' | 'ink';
 }
 
-const { id, eyebrow, title, accent = 'pink' } = Astro.props;
+const { id, eyebrow, title, accent = 'mustard' } = Astro.props;
 
 // Clases completas (no interpoladas) para que Tailwind las detecte al compilar
-const eyebrowClass = { pink: 'neon-pink', amber: 'neon-amber', cyan: 'neon-cyan' }[accent];
+const tagClass = {
+  mustard: 'bg-mustard text-ink',
+  ketchup: 'bg-ketchup text-paper',
+  pickle: 'bg-pickle text-ink',
+  ink: 'bg-ink text-mustard',
+}[accent];
 ---
 
 <header class="mb-12 text-center" data-reveal>
-  <p class:list={['font-neon text-2xl', eyebrowClass]}>{eyebrow}</p>
-  <h2 id={id} class="mt-2 text-4xl sm:text-5xl">{title}</h2>
+  <p class:list={['inline-block -rotate-2 px-3 py-1 font-mono text-sm font-bold tracking-widest uppercase', tagClass]}>
+    {eyebrow}
+  </p>
+  <h2 id={id} class="mt-4 text-4xl leading-[0.95] sm:text-6xl">{title}</h2>
 </header>

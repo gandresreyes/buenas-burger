@@ -7,35 +7,34 @@
  *    Es el estado final: lo que ve quien no tiene JS o prefiere menos movimiento.
  * 2. Con movimiento permitido, GSAP fija (pin) la sección y, al hacer scroll,
  *    lleva cada capa desde la posición "montada" (todas apiladas) a su sitio,
- *    y después enciende las etiquetas una a una.
+ *    y después saca las etiquetas una a una.
  * 3. `scrub` ata la animación a la barra de scroll: hacia arriba se vuelve a montar.
  */
+import { Image } from 'astro:assets';
 import { featuredBurger as burger } from '../data/menu';
 import BurgerLayerArt from './BurgerLayerArt.astro';
 
 const layers = burger.layers ?? [];
 
-// Color de la línea guía de cada etiqueta (clases completas para Tailwind)
-const lineColor = { pink: 'bg-pink', amber: 'bg-amber', cyan: 'bg-cyan', cream: 'bg-cream' };
+// Fotos reales de las capas (src/assets/burger/<photo>.webp). La carpeta puede
+// estar vacía o no existir: entonces cada capa usa su ilustración.
+const photos = import.meta.glob<{ default: ImageMetadata }>('../assets/burger/*.{webp,png,avif}', { eager: true });
+const photoFor = (name: string) =>
+  Object.entries(photos).find(([path]) => path.split('/').pop()!.replace(/\.\w+$/, '') === name)?.[1].default;
 ---
 
-<section id="la-rosa" aria-labelledby="anatomia-title" data-anatomy>
+<section id="la-rosa" aria-labelledby="anatomia-title" class="bg-ink" data-anatomy>
   <div
     class="relative flex min-h-svh items-center overflow-hidden px-4 pt-20 pb-10 sm:px-6"
     data-anatomy-stage
   >
-    <!-- Halo rosa detrás de la burger; crece mientras se despieza -->
-    <div
-      class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_65%_50%,rgb(255_61_154/0.18),transparent_55%)]"
-      aria-hidden="true"
-      data-anatomy-halo
-    >
-    </div>
 
     <div class="relative mx-auto grid w-full max-w-6xl items-center gap-8 md:grid-cols-[1fr_1.3fr] md:gap-12">
       <header class="text-center md:text-left">
-        <p class="font-neon text-xl neon-amber sm:text-2xl">La burger de la casa</p>
-        <h2 id="anatomia-title" class="mt-3 font-neon text-4xl leading-tight normal-case neon-pink sm:text-6xl lg:text-7xl">
+        <p class="inline-block -rotate-2 bg-mustard px-3 py-1 font-mono text-sm font-bold tracking-widest text-ink uppercase">
+          La burger de la casa
+        </p>
+        <h2 id="anatomia-title" class="mt-4 text-4xl leading-[0.95] sm:text-6xl md:text-5xl">
           {burger.name}
         </h2>
 
@@ -43,7 +42,7 @@ const lineColor = { pink: 'bg-pink', amber: 'bg-amber', cyan: 'bg-cyan', cream: 
           burger.tags && (
             <ul class="mt-5 flex flex-wrap justify-center gap-1.5 sm:gap-2 md:justify-start [@media(max-height:700px)]:hidden" aria-label="Destacados">
               {burger.tags.map((tag) => (
-                <li class="rounded-full border border-amber/60 px-2.5 py-1 text-[10px] font-bold sm:px-3 sm:text-[11px] tracking-widest text-amber uppercase">
+                <li class="rounded-full border border-line px-2.5 py-1 font-mono text-[10px] font-bold tracking-wider text-muted uppercase sm:px-3 sm:text-[11px]">
                   {tag}
                 </li>
               ))}
@@ -56,7 +55,7 @@ const lineColor = { pink: 'bg-pink', amber: 'bg-amber', cyan: 'bg-cyan', cream: 
         </p>
 
         <!-- Pista de scroll: solo tiene sentido con la animación activa (la muestra el script) -->
-        <p class="invisible mt-4 text-xs md:mt-6 font-bold tracking-[0.3em] text-muted uppercase" data-anatomy-hint>
+        <p class="invisible mt-4 font-mono text-xs font-bold tracking-[0.25em] text-muted uppercase md:mt-6" data-anatomy-hint>
           Desliza para desmontarla ↓
         </p>
       </header>
@@ -70,18 +69,46 @@ const lineColor = { pink: 'bg-pink', amber: 'bg-amber', cyan: 'bg-cyan', cream: 
         a su etiqueta; el dibujo va centrado dentro. El padding derecho deja hueco a las etiquetas, que van en posición absoluta.
       -->
       <div
-        class="mx-auto w-max pr-[calc(var(--label)+0.75rem)] [--label:calc(100vw-var(--w)-3.5rem)] [--w:min(36vw,260px,28svh)] md:pr-[13.5rem] lg:pr-84"
+        class="relative mx-auto w-max pr-[calc(var(--label)+0.75rem)] [--label:calc(100vw-var(--w)-3.5rem)] [--w:min(36vw,260px,28svh)] md:pr-[13.5rem] lg:pr-84"
       >
+        <!-- Foco de luz cálida detrás de la burger, como en una foto de producto; se abre mientras se despieza -->
+        <div
+          class="pointer-events-none absolute top-1/2 left-[calc(var(--w)/2)] aspect-square w-[calc(var(--w)*2.6)] -translate-1/2 rounded-full bg-[radial-gradient(closest-side,color-mix(in_srgb,var(--color-mustard)_30%,transparent),color-mix(in_srgb,var(--color-mustard)_8%,transparent)_55%,transparent)]"
+          aria-hidden="true"
+          data-anatomy-halo
+        >
+        </div>
+
         <ol
           class="relative flex flex-col gap-(--gap) [--gap:clamp(4px,1.4svh,14px)] md:[--gap:clamp(10px,2.8svh,28px)]"
           aria-label="Ingredientes, de arriba abajo"
           data-anatomy-layers
         >
           {
-            layers.map((layer) => (
-              <li class="relative flex min-h-9 w-(--w) items-center will-change-transform md:min-h-11" data-layer>
+            layers.map((layer, i) => {
+              const photo = photoFor(layer.photo);
+              return (
+              // z-index decreciente: cada capa tapa a la de debajo (los goterones caen por delante)
+              <li
+                class="relative flex min-h-9 w-(--w) items-center will-change-transform md:min-h-11"
+                style={`z-index: ${layers.length - i}`}
+                data-layer
+                data-photo={photo ? '' : undefined}
+              >
                 <div class="w-full" data-layer-art>
-                  <BurgerLayerArt kind={layer.kind} color={layer.color} class="block w-full" />
+                  {/* Foto recortada si existe; si no, la ilustración */}
+                  {photo ? (
+                    <Image
+                      src={photo}
+                      alt=""
+                      widths={[320, 640]}
+                      sizes="260px"
+                      class="food-shadow mx-auto block h-auto"
+                      style={`width: ${(layer.photoScale ?? 1) * 100}%`}
+                    />
+                  ) : (
+                    <BurgerLayerArt kind={layer.kind} class="block w-full" />
+                  )}
                 </div>
 
                 <span
@@ -89,16 +116,18 @@ const lineColor = { pink: 'bg-pink', amber: 'bg-amber', cyan: 'bg-cyan', cream: 
                   data-layer-label
                 >
                   <span
-                    class:list={['h-px w-5 shrink-0 origin-left md:w-10', lineColor[layer.color]]}
+                    class="h-px w-5 shrink-0 origin-left bg-muted/60 md:w-10"
                     aria-hidden="true"
                     data-layer-line
                   />
-                  <span class="text-[11px] leading-snug font-bold tracking-wide text-cream uppercase sm:text-sm sm:tracking-widest">
-                    {layer.label}
+                  <span class="text-[11px] leading-snug sm:text-sm">
+                    <span class="mr-1.5 font-mono text-mustard" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+                    <span class="font-medium text-paper">{layer.label}</span>
                   </span>
                 </span>
               </li>
-            ))
+              );
+            })
           }
         </ol>
       </div>
@@ -129,14 +158,18 @@ const lineColor = { pink: 'bg-pink', amber: 'bg-amber', cyan: 'bg-cyan', cream: 
        * en la columna. Se mide el dibujo (no el <li>, que tiene altura mínima).
        * offsetTop/offsetHeight ignoran los transform, así que la medida es
        * estable aunque la animación esté a medias.
+       * Las fotos se solapan más que los dibujos: están tomadas un poco desde
+       * arriba y, montadas, cada capa se mete bajo la de encima.
        */
       const stackedY = (index: number) => {
-        const overlap = layers[0].offsetWidth * 0.02;
+        const width = layers[0].offsetWidth;
+        // overlaps[i]: cuánto se mete la capa i bajo la anterior
+        const overlaps = layers.map((layer, i) => (i === 0 ? 0 : width * ('photo' in layer.dataset ? 0.08 : 0.02)));
         const heights = arts.map((art) => art.offsetHeight);
-        const stackHeight = heights.reduce((sum, h) => sum + h, 0) - overlap * (layers.length - 1);
+        const stackHeight = heights.reduce((sum, h, i) => sum + h - overlaps[i], 0);
 
         let top = (list.offsetHeight - stackHeight) / 2;
-        for (let i = 0; i < index; i++) top += heights[i] - overlap;
+        for (let i = 0; i < index; i++) top += heights[i] - overlaps[i + 1];
 
         const artTop = layers[index].offsetTop + arts[index].offsetTop;
         return top - artTop;
@@ -174,11 +207,11 @@ const lineColor = { pink: 'bg-pink', amber: 'bg-amber', cyan: 'bg-cyan', cream: 
           },
           0.15,
         )
-        // El halo crece a la vez
-        .fromTo(halo, { autoAlpha: 0, scale: 0.7 }, { autoAlpha: 1, scale: 1.1, duration: 1.2 }, 0)
+        // El disco crece a la vez
+        .fromTo(halo, { scale: 0.6, autoAlpha: 0.4 }, { scale: 1, autoAlpha: 1, duration: 1.2, ease: 'power2.out' }, 0)
         // La pista desaparece en cuanto se empieza a hacer scroll
         .to(hint, { autoAlpha: 0, duration: 0.15 }, 0.05)
-        // 2. Se "encienden" las etiquetas: primero la línea guía, luego el texto
+        // 2. Salen las etiquetas: primero la línea guía, luego el texto
         .fromTo(lines, { scaleX: 0 }, { scaleX: 1, duration: 0.25, stagger: 0.06 }, 0.8)
         .fromTo(labels, { autoAlpha: 0, x: -10 }, { autoAlpha: 1, x: 0, duration: 0.3, stagger: 0.06 }, 0.85)
         // 3. Pausa con la burger despiezada antes de soltar la sección

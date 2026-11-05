@@ -1,0 +1,81 @@
+---
+/**
+ * La frase del vinilo de la puerta del local: "Buenas en tu casa · Buenísimas
+ * en la nuestra", compuesta como en el cristal (BUENAS en arco, letra condensada,
+ * línea mostaza con la "B" en medio y una luz roja detrás).
+ * Debajo de cada mitad, su acción: pedir a domicilio / venir al local.
+ *
+ * Accesibilidad: el titular real es el <h2> oculto con la frase completa; la
+ * composición visual (letras sueltas del arco) va con aria-hidden.
+ */
+import { site } from '../data/site';
+import Button from './Button.astro';
+import DeliveryLinks from './DeliveryLinks.astro';
+
+// "BUENAS" en arco: cada letra gira y baja un poco según lo lejos que esté del centro
+const arch = [...'Buenas'].map((letter, i, all) => {
+  const offset = i - (all.length - 1) / 2;
+  return { letter, style: `transform: translateY(${(offset * offset * 0.035).toFixed(3)}em) rotate(${offset * 6}deg)` };
+});
+---
+
+<section aria-labelledby="slogan-title" class="relative overflow-hidden bg-paper px-4 py-24 text-ink sm:px-6 md:py-32" data-slogan>
+  <!-- Luz roja detrás del cristal, como en la foto de la puerta -->
+  <div
+    class="pointer-events-none absolute top-1/2 left-1/2 aspect-[3/4] w-[min(95vw,640px)] -translate-1/2 rounded-full bg-[radial-gradient(closest-side,color-mix(in_srgb,var(--color-ketchup)_75%,transparent),color-mix(in_srgb,var(--color-ketchup)_25%,transparent)_60%,transparent)] blur-2xl"
+    aria-hidden="true"
+    data-slogan-glow
+  >
+  </div>
+
+  <h2 id="slogan-title" class="sr-only">Buenas en tu casa, buenísimas en la nuestra</h2>
+
+  <div class="relative mx-auto max-w-3xl text-center font-condensed leading-[0.92] uppercase">
+    <div data-reveal>
+      <p class="flex justify-center text-[clamp(4rem,19vw,9.5rem)]" aria-hidden="true">
+        {arch.map(({ letter, style }) => <span class="inline-block" style={style}>{letter}</span>)}
+      </p>
+      <p class="mt-[0.3em] text-[clamp(3rem,14vw,7rem)]" aria-hidden="true">En tu casa</p>
+      <DeliveryLinks class="mt-8 font-sans normal-case" />
+    </div>
+
+    <!-- Línea mostaza con la "B" en medio, como en el vinilo -->
+    <div class="my-12 flex items-center gap-3 sm:gap-5" aria-hidden="true" data-reveal>
+      <span class="h-1.5 flex-1 rounded-full bg-mustard"></span>
+      <span class="grid size-16 shrink-0 place-items-center rounded-full bg-ink sm:size-20">
+        <svg viewBox="0 0 41 57" class="h-9 sm:h-11">
+          <path class="fill-mustard" d="M0 12.5A19 12.5 0 0 1 38 12.5Z" />
+          <path
+            class="fill-paper"
+            fill-rule="evenodd"
+            d="M0.5 14H36.5Q39.5 14 39.5 17V29Q39.5 31.5 36.5 32Q41 32.5 41 35.5V46Q41 48.5 38.5 48.5H0.5ZM14.5 19.5V27.5H25V19.5ZM15 37.5V44H26V37.5Z"
+          />
+          <path class="fill-mustard" d="M0 51H10L13 54L16 51H38V52.5C38 55 35 57 31 57H7C3 57 0 55 0 52.5Z" />
+        </svg>
+      </span>
+      <span class="h-1.5 flex-1 rounded-full bg-mustard"></span>
+    </div>
+
+    <div data-reveal>
+      <p class="text-[clamp(3.2rem,15vw,7.5rem)]" aria-hidden="true">Buenísimas</p>
+      <p class="text-[clamp(2.6rem,12.5vw,6.25rem)]" aria-hidden="true">En la nuestra</p>
+      <Button href={site.address.mapsUrl} external class="mt-8">Ven a vernos</Button>
+    </div>
+  </div>
+</section>
+
+<script>
+  import { gsap, MOTION_OK } from '../lib/motion';
+
+  gsap.matchMedia().add(MOTION_OK, () => {
+    const section = document.querySelector('[data-slogan]');
+    if (!section) return;
+
+    // La luz de detrás "se enciende" según la sección entra en pantalla
+    gsap.fromTo(
+      section.querySelector('[data-slogan-glow]'),
+      { autoAlpha: 0.25, scale: 0.8 },
+      { autoAlpha: 1, scale: 1, ease: 'none', scrollTrigger: { trigger: section, start: 'top 80%', end: 'center center', scrub: true } },
+    );
+  });
+</script>

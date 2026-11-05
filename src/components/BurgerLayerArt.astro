@@ -1,92 +1,301 @@
 ---
 /**
- * Dibujo en neón de una capa de la burger (pan, salsa, queso…).
+ * Ilustración realista de una capa de la burger (pan, salsa, queso…), de perfil.
+ *
+ * Cada capa combina:
+ * - degradados con la luz arriba a la izquierda (volumen),
+ * - un filtro de textura: ruido + iluminación difusa SVG multiplicados sobre el
+ *   color (miga, costra, rebozado) y, en los ingredientes orgánicos, un
+ *   desplazamiento que rompe el contorno (bordes crujientes del smash),
+ * - brillos desenfocados encima (salsa, queso fundido, pan brillante).
+ *
+ * EXCEPCIÓN a la regla de tokens: los colores de comida van aquí en hex porque
+ * son una paleta fotográfica que no se usa en ningún otro sitio.
+ *
  * Todas las capas comparten 320 unidades de ancho para que encajen al apilarlas;
- * el alto varía según el ingrediente. Trazo con currentColor + glow-stroke.
+ * el alto varía según el ingrediente. Los filtros se pintan una vez: la animación
+ * mueve la capa con transform y no los recalcula.
  */
-import type { BurgerLayer, NeonColor } from '../data/menu';
+import type { BurgerLayer } from '../data/menu';
 
 interface Props {
   kind: BurgerLayer['kind'];
-  color: NeonColor;
   class?: string;
 }
 
-const { kind, color, class: className = '' } = Astro.props;
+const { kind, class: className = '' } = Astro.props;
 
-// Clases completas por color (Tailwind solo genera las que ve escritas)
-const colorClass: Record<NeonColor, string> = {
-  pink: 'text-pink',
-  amber: 'text-amber',
-  cyan: 'text-cyan',
-  cream: 'text-cream',
-};
-
-/** Onda de salsa: repite una curva de 35 unidades a lo ancho */
-const sauceWave = `M20 13 ${Array.from({ length: 8 }, () => 'q 17.5 -9 35 0').join(' ')}`;
+// Ids únicos por instancia: hay varias capas iguales (dos carnes) en la página
+const uid = `layer-${Math.random().toString(36).slice(2, 8)}`;
+const ref = (name: string) => `url(#${uid}-${name})`;
 
 // Alto del viewBox de cada capa
 const heights: Record<BurgerLayer['kind'], number> = {
-  'bun-top': 110,
-  sauce: 26,
-  'onion-ring': 44,
-  cheese: 52,
-  patty: 44,
-  'bun-bottom': 56,
+  'bun-top': 132,
+  'sauce-garlic': 46,
+  'sauce-bbq': 46,
+  'onion-ring': 62,
+  cheese: 62,
+  patty: 50,
+  'bun-bottom': 64,
 };
+
+/**
+ * Parámetros de la textura por ingrediente:
+ * freq/octaves → tamaño y detalle del grano · relief → profundidad del relieve
+ * gain → compensa lo que oscurece la luz · warp/warpFreq → irregularidad del borde
+ */
+const texture: Record<BurgerLayer['kind'], { freq: number; octaves: number; relief: number; gain: number; warp: number; warpFreq: number }> = {
+  'bun-top': { freq: 0.9, octaves: 2, relief: 0.5, gain: 1.3, warp: 0, warpFreq: 0 },
+  'sauce-garlic': { freq: 0.8, octaves: 2, relief: 0.4, gain: 1.25, warp: 3, warpFreq: 0.06 },
+  'sauce-bbq': { freq: 0.8, octaves: 2, relief: 0.4, gain: 1.3, warp: 3, warpFreq: 0.06 },
+  'onion-ring': { freq: 0.3, octaves: 3, relief: 2, gain: 1.33, warp: 5, warpFreq: 0.05 },
+  cheese: { freq: 0.03, octaves: 2, relief: 1.2, gain: 1.28, warp: 2.5, warpFreq: 0.05 },
+  patty: { freq: 0.7, octaves: 3, relief: 2.2, gain: 1.38, warp: 7, warpFreq: 0.07 },
+  'bun-bottom': { freq: 0.6, octaves: 3, relief: 1.6, gain: 1.3, warp: 0, warpFreq: 0 },
+};
+const t = texture[kind];
+const shapeIn = t.warp ? 'shape' : 'SourceGraphic';
+
+/** Salsa: banda ondulada con goterones redondeados */
+const saucePath =
+  'M16 14 C40 6 70 8 96 10 C130 12 160 6 196 9 C230 12 262 7 304 13 C308 16 304 20 296 20 L270 20 C266 20 264 22 264 26 C264 31 256 31 256 26 C256 22 252 20 246 20 L190 21 C184 21 182 24 182 29 C182 35 172 35 172 29 C172 24 168 21 162 21 L104 20 C98 20 96 23 96 27 C96 31 89 31 89 27 C89 23 86 20 80 20 L24 20 C14 20 12 16 16 14 Z';
+const sauceGloss = 'M40 11 C70 8 110 11 150 9 M200 10 C230 12 260 9 290 13';
+
+const sauceColors = {
+  'sauce-garlic': ['#fffbf2', '#f1e6c9', '#d6c49a'],
+  'sauce-bbq': ['#b5501f', '#7a240d', '#3d0e05'],
+} as const;
+
+const bunDome = 'M14 108 C14 44 72 12 160 12 C248 12 306 44 306 108 C306 114 300 118 292 118 L28 118 C20 118 14 114 14 108 Z';
+const cheesePath =
+  'M10 10 C60 6 110 12 160 9 C210 6 260 12 310 9 C314 12 312 18 304 22 C296 26 292 30 292 38 C292 48 280 48 280 38 C280 30 272 26 258 26 C246 26 240 30 238 42 C236 58 220 58 220 42 C220 32 212 27 196 27 L150 28 C140 28 136 32 136 38 C136 46 124 46 124 38 C124 31 118 27 104 27 C88 27 80 31 76 40 C72 52 58 52 58 40 C58 32 50 26 36 25 C20 24 6 20 10 10 Z';
+const pattyPath = 'M22 22 C22 10 40 7 64 7 L258 7 C284 7 300 12 300 24 C300 37 286 44 258 44 L62 44 C38 44 22 36 22 24 Z';
 ---
 
 <svg
-  class:list={['glow-stroke overflow-visible', colorClass[color], className]}
+  class:list={['food-shadow overflow-visible', className]}
   viewBox={`0 0 320 ${heights[kind]}`}
-  fill="none"
-  stroke="currentColor"
-  stroke-width="5"
-  stroke-linecap="round"
-  stroke-linejoin="round"
   aria-hidden="true"
 >
+  <defs>
+    <!-- Textura: (borde irregular) → ruido → relieve iluminado × color → recorte a la silueta -->
+    <filter id={`${uid}-tex`} x="-5%" y="-25%" width="110%" height="150%" color-interpolation-filters="sRGB">
+      {
+        t.warp > 0 && (
+          <>
+            <feTurbulence type="fractalNoise" baseFrequency={t.warpFreq} numOctaves="2" seed="7" result="warpNoise" />
+            <feDisplacementMap in="SourceGraphic" in2="warpNoise" scale={t.warp} xChannelSelector="R" yChannelSelector="G" result="shape" />
+          </>
+        )
+      }
+      <feTurbulence type="fractalNoise" baseFrequency={t.freq} numOctaves={t.octaves} seed="3" result="noise" />
+      <feDiffuseLighting in="noise" surfaceScale={t.relief} lighting-color="#ffffff" result="light">
+        <feDistantLight azimuth="225" elevation="50" />
+      </feDiffuseLighting>
+      <feComposite in={shapeIn} in2="light" operator="arithmetic" k1={t.gain} k2="0" k3="0" k4="0" result="lit" />
+      <feComposite in="lit" in2={shapeIn} operator="in" />
+    </filter>
+    <filter id={`${uid}-soft`} x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="4" /></filter>
+    <filter id={`${uid}-sharp`} x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="1" /></filter>
+
+    <!-- Sombra propia: oscurece la parte de abajo de cada pieza -->
+    <linearGradient id={`${uid}-shade`} x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0.45" stop-color="#1a0a02" stop-opacity="0" />
+      <stop offset="1" stop-color="#1a0a02" stop-opacity="0.55" />
+    </linearGradient>
+
+    {
+      (kind === 'bun-top' || kind === 'bun-bottom') && (
+        <>
+          <radialGradient id={`${uid}-crust`} cx="0.36" cy={kind === 'bun-top' ? 0.18 : 0} r="0.95">
+            <stop offset="0" stop-color="#fbe0a6" />
+            <stop offset="0.18" stop-color="#f0b765" />
+            <stop offset="0.45" stop-color="#d98d3c" />
+            <stop offset="0.75" stop-color="#b0621f" />
+            <stop offset="1" stop-color="#7c3a12" />
+          </radialGradient>
+          <linearGradient id={`${uid}-crumb`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#f8e6bd" />
+            <stop offset="1" stop-color="#e2c084" />
+          </linearGradient>
+        </>
+      )
+    }
+
+    {
+      (kind === 'sauce-garlic' || kind === 'sauce-bbq') && (
+        <linearGradient id={`${uid}-sauce`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color={sauceColors[kind][0]} />
+          <stop offset="0.5" stop-color={sauceColors[kind][1]} />
+          <stop offset="1" stop-color={sauceColors[kind][2]} />
+        </linearGradient>
+      )
+    }
+
+    {
+      kind === 'onion-ring' && (
+        <>
+          <radialGradient id={`${uid}-batter`} cx="0.4" cy="0.25" r="0.8">
+            <stop offset="0" stop-color="#f7d58c" />
+            <stop offset="0.35" stop-color="#e2a54e" />
+            <stop offset="0.7" stop-color="#bd772d" />
+            <stop offset="1" stop-color="#7f4214" />
+          </radialGradient>
+          <!-- Agujero del aro: deja ver el fondo -->
+          <mask id={`${uid}-hole`}>
+            <rect width="320" height="62" fill="#fff" />
+            <ellipse cx="160" cy="27" rx="80" ry="10" fill="#000" />
+          </mask>
+        </>
+      )
+    }
+
+    {
+      kind === 'cheese' && (
+        <linearGradient id={`${uid}-cheese`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#fff3c4" />
+          <stop offset="0.4" stop-color="#f3d77f" />
+          <stop offset="1" stop-color="#d9a93f" />
+        </linearGradient>
+      )
+    }
+
+    {
+      kind === 'patty' && (
+        <>
+        <linearGradient id={`${uid}-edges`} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#140702" stop-opacity="0.75" />
+          <stop offset="0.12" stop-color="#140702" stop-opacity="0" />
+          <stop offset="0.88" stop-color="#140702" stop-opacity="0" />
+          <stop offset="1" stop-color="#140702" stop-opacity="0.75" />
+        </linearGradient>
+        <linearGradient id={`${uid}-meat`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#9a5a30" />
+          <stop offset="0.3" stop-color="#6a3519" />
+          <stop offset="0.7" stop-color="#3f1d0c" />
+          <stop offset="1" stop-color="#241006" />
+        </linearGradient>
+        </>
+      )
+    }
+  </defs>
+
   {
     kind === 'bun-top' && (
       <>
-        <path d="M24 98 C24 18 296 18 296 98 Q296 106 288 106 L32 106 Q24 106 24 98 Z" />
-        {/* Sésamo */}
-        <path d="M100 56 l10 -5 M140 44 l10 2 M182 50 l9 -4 M120 76 l10 3 M162 72 l10 -2 M204 74 l8 4" />
+        <g filter={ref('tex')}>
+          {/* Corte del pan (miga) asomando por debajo de la corteza */}
+          <path d="M24 110 L296 110 C300 120 292 128 280 128 L40 128 C28 128 20 120 24 110 Z" fill={ref('crumb')} />
+          <path d={bunDome} fill={ref('crust')} />
+        </g>
+        <path d={bunDome} fill={ref('shade')} />
+        {/* Brillo del pan de patata */}
+        <ellipse cx="118" cy="40" rx="62" ry="15" transform="rotate(-10 118 40)" fill="#fff" opacity="0.28" filter={ref('soft')} />
+        <ellipse cx="104" cy="35" rx="20" ry="5" transform="rotate(-12 104 35)" fill="#fff" opacity="0.55" filter={ref('sharp')} />
       </>
     )
   }
 
-  {kind === 'sauce' && <path d={sauceWave} />}
+  {
+    (kind === 'sauce-garlic' || kind === 'sauce-bbq') && (
+      <>
+        {/* La forma se estira en vertical para que la salsa tenga cuerpo */}
+        <g transform="translate(0 2) scale(1 1.35)">
+        <path d={saucePath} fill={ref('sauce')} filter={ref('tex')} />
+        {/* Brillo húmedo en el borde y en los goterones */}
+        <path
+          d={sauceGloss}
+          fill="none"
+          stroke="#fff"
+          stroke-width="2"
+          stroke-linecap="round"
+          opacity={kind === 'sauce-garlic' ? 0.8 : 0.5}
+          filter={ref('sharp')}
+        />
+        <g fill="#fff" opacity={kind === 'sauce-garlic' ? 0.7 : 0.45} filter={ref('sharp')}>
+          <ellipse cx="92" cy="25" rx="1.6" ry="2.4" />
+          <ellipse cx="176" cy="27" rx="2" ry="3" />
+          <ellipse cx="259" cy="24" rx="1.6" ry="2.4" />
+        </g>
+        {
+          kind === 'sauce-garlic' && (
+            // Virutas de parmesano
+            <g fill="#d8b765" opacity="0.7">
+              <ellipse cx="60" cy="15" rx="2.2" ry="1.2" />
+              <ellipse cx="128" cy="14" rx="1.8" ry="1" />
+              <ellipse cx="214" cy="15" rx="2.4" ry="1.2" />
+              <ellipse cx="278" cy="16" rx="1.8" ry="1" />
+            </g>
+          )
+        }
+        </g>
+      </>
+    )
+  }
 
   {
     kind === 'onion-ring' && (
-      <>
-        <ellipse cx="160" cy="22" rx="128" ry="17" />
-        <ellipse cx="160" cy="22" rx="88" ry="8" />
-      </>
+      <g mask={ref('hole')}>
+        <ellipse cx="160" cy="32" rx="130" ry="28" fill={ref('batter')} filter={ref('tex')} />
+        {/* Pared interior del aro, en sombra */}
+        <ellipse cx="160" cy="29" rx="84" ry="12" fill="none" stroke="#4a2008" stroke-width="5" opacity="0.6" filter={ref('soft')} />
+        <ellipse cx="160" cy="32" rx="130" ry="28" fill={ref('shade')} />
+        <ellipse cx="96" cy="17" rx="34" ry="6" transform="rotate(-8 96 17)" fill="#fff" opacity="0.3" filter={ref('soft')} />
+      </g>
     )
   }
 
   {
     kind === 'cheese' && (
-      // Loncha con goterones de queso fundido
-      <path d="M14 8 L306 8 L292 20 L280 40 L268 20 L222 20 L210 46 L198 20 L136 20 L124 36 L112 20 L60 20 L48 32 L36 20 Z" />
+      <>
+        <path d={cheesePath} fill={ref('cheese')} filter={ref('tex')} />
+        <path d={cheesePath} fill={ref('shade')} opacity="0.5" />
+        {/* Brillo del queso fundido: borde superior y punta de cada goterón */}
+        <path d="M30 10 C80 7 130 12 180 9 C220 7 260 11 296 10" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" opacity="0.7" filter={ref('sharp')} />
+        <g fill="#fff" opacity="0.65" filter={ref('sharp')}>
+          <ellipse cx="62" cy="42" rx="2.5" ry="4" />
+          <ellipse cx="128" cy="38" rx="2" ry="3" />
+          <ellipse cx="224" cy="45" rx="2.5" ry="4.5" />
+          <ellipse cx="284" cy="38" rx="2" ry="3.5" />
+        </g>
+      </>
     )
   }
 
   {
     kind === 'patty' && (
       <>
-        <rect x="22" y="6" width="276" height="32" rx="16" />
-        {/* Marcas de la plancha / bordes crujientes del smash */}
-        <path d="M70 22 h30 M140 18 h24 M200 24 h36" stroke-width="3" />
+        <path d={pattyPath} fill={ref('meat')} filter={ref('tex')} />
+        {/* Bordes más tostados (la parte crujiente del smash) y sombra inferior */}
+        <path d={pattyPath} fill={ref('edges')} />
+        <path d={pattyPath} fill={ref('shade')} />
+        {/* Jugo: brillos sueltos en la costra */}
+        <g fill="#fff">
+          <ellipse cx="110" cy="13" rx="34" ry="3.5" opacity="0.14" filter={ref('soft')} />
+          <ellipse cx="96" cy="14" rx="5" ry="1.2" opacity="0.5" filter={ref('sharp')} />
+          <ellipse cx="170" cy="12" rx="4" ry="1" opacity="0.45" filter={ref('sharp')} />
+          <ellipse cx="236" cy="15" rx="6" ry="1.3" opacity="0.4" filter={ref('sharp')} />
+        </g>
       </>
     )
   }
 
   {
     kind === 'bun-bottom' && (
-      <path d="M30 8 L290 8 Q296 8 296 14 C296 40 280 50 258 50 L62 50 C40 50 24 40 24 14 Q24 8 30 8 Z" />
+      <>
+        <g filter={ref('tex')}>
+          <path d="M16 16 L304 16 C306 36 294 54 264 58 L56 58 C26 54 14 36 16 16 Z" fill={ref('crust')} />
+          {/* Cara cortada de la base: miga, con el borde algo tostado */}
+          <path
+            d="M16 16 C16 9 44 6 160 6 C276 6 304 9 304 16 C304 23 276 26 160 26 C44 26 16 23 16 16 Z"
+            fill={ref('crumb')}
+            stroke="#c48a45"
+            stroke-width="3"
+          />
+        </g>
+        <path d="M16 16 L304 16 C306 36 294 54 264 58 L56 58 C26 54 14 36 16 16 Z" fill={ref('shade')} />
+      </>
     )
   }
 </svg>

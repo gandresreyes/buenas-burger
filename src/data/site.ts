@@ -7,6 +7,8 @@
 export const site = {
   name: 'Buenas Burgers',
   tagline: 'Smash burgers en el corazón de León',
+  // Año de apertura: sale en el cartel del local ("Smash since 2021")
+  since: 2021,
   description:
     'Buenas Burgers: smash burgers de vaca madurada en León. Pan de patata, salsas caseras y opción sin gluten. Calle Misericordia 10.',
 

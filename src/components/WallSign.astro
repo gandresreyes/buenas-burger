@@ -1,0 +1,67 @@
+---
+/**
+ * El cartel de neón de la pared del local ("Buenas Burgers · Smash since 2021"
+ * con la "B" entre panes), dibujado como el tubo: trazo de grosor uniforme y
+ * puntas redondeadas.
+ * - Apagado (por defecto): solo el trazo, del color del texto (`currentColor`).
+ * - `lit`: encendido, con brillo mostaza (`neon-mustard`), y parpadea al entrar
+ *   en pantalla (`data-neon`, ver motion.ts). Pensado para fondos oscuros.
+ * Decorativo.
+ */
+import { site } from '../data/site';
+
+interface Props {
+  class?: string;
+  lit?: boolean;
+  // Admite atributos extra (p. ej. data-reveal)
+  [attr: `data-${string}`]: unknown;
+}
+
+const { class: className, lit = false, ...attrs } = Astro.props;
+---
+
+<!-- @container + text-[8cqw]: el halo del neón (en em) crece con el ancho del cartel -->
+<div class:list={['@container', className]} aria-hidden="true" {...attrs}>
+  <svg
+    viewBox="0 0 200 200"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="3"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    class:list={['block w-full overflow-visible text-[8cqw]', lit && 'neon-mustard']}
+    data-neon={lit ? '' : undefined}
+  >
+    <defs>
+      <!-- Arriba se lee por fuera del arco; abajo, por dentro (de izquierda a derecha) -->
+      <path id="sign-top" d="M32 100A68 68 0 0 1 168 100" />
+      <path id="sign-bottom" d="M19 100A81 81 0 0 0 181 100" />
+    </defs>
+
+    <!-- Borde de la placa de metacrilato -->
+    <circle cx="100" cy="100" r="94" stroke-width="1.5" />
+
+    <g fill="currentColor" stroke="none" class="font-mono font-bold uppercase" font-size="16" text-anchor="middle">
+      <text><textPath href="#sign-top" startOffset="50%" letter-spacing="2">{site.name}</textPath></text>
+      <!-- Encendido, este tubo hace cortocircuito de vez en cuando (motion.ts) -->
+      <text data-neon-fault={lit ? '' : undefined}
+        ><textPath href="#sign-bottom" startOffset="50%" letter-spacing="1.5">Smash since {site.since}</textPath></text
+      >
+    </g>
+
+    <!-- Guiones a los lados, como en el cartel -->
+    <path d="M15 100H25M175 100H185" />
+
+    <!-- Pan de arriba con sésamo -->
+    <path d="M72 74Q72 48 100 48Q128 48 128 74Z" />
+    <path d="M90 57H93M99 57H102M108 57H111M85 65H88M95 65H98M104 65H107M113 65H116" />
+
+    <!-- La "B" con sus dos huecos -->
+    <path d="M72 80H122Q127 80 127 85V100Q127 104 123 105Q130 106 130 111V127Q130 132 125 132H72Z" />
+    <rect x="90" y="88" width="19" height="11" rx="2" />
+    <rect x="90" y="113" width="22" height="11" rx="2" />
+
+    <!-- Pan de abajo, con el queso que gotea -->
+    <path d="M72 138H89L96 145L103 138H128V141Q128 150 118 150H82Q72 150 72 141Z" />
+  </svg>
+</div>

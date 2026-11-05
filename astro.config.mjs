@@ -16,16 +16,16 @@ export default defineConfig({
   // Cada fuente expone una variable CSS que luego mapeamos en src/styles/global.css.
   fonts: [
     {
-      // Tipografía diseñada imitando tubos de neón: logo y rótulos.
+      // Display gruesa y redondeada, la más parecida a la letra del logo: titulares.
       provider: fontProviders.google(),
-      name: 'Tilt Neon',
-      cssVariable: '--font-tilt-neon',
+      name: 'Lilita One',
+      cssVariable: '--font-lilita-one',
       weights: [400],
       subsets: ['latin'],
-      fallbacks: ['sans-serif'],
+      fallbacks: ['Arial Black', 'sans-serif'],
     },
     {
-      // Display condensada y contundente para titulares.
+      // Condensada y gruesa, como la del vinilo de la puerta ("Buenas en tu casa…").
       provider: fontProviders.google(),
       name: 'Anton',
       cssVariable: '--font-anton',
@@ -34,11 +34,31 @@ export default defineConfig({
       fallbacks: ['Impact', 'sans-serif'],
     },
     {
+      // Manuscrita de rotulador, como el neón "Quiero salir en tus stories" del local.
+      provider: fontProviders.google(),
+      name: 'Gochi Hand',
+      cssVariable: '--font-gochi-hand',
+      weights: [400],
+      subsets: ['latin'],
+      fallbacks: ['cursive'],
+    },
+    {
+      // Monoespaciada de impresora de tickets: carta, antetítulos y etiquetas.
+      provider: fontProviders.google(),
+      name: 'Space Mono',
+      cssVariable: '--font-space-mono',
+      weights: [400, 700],
+      styles: ['normal'],
+      subsets: ['latin'],
+      fallbacks: ['ui-monospace', 'monospace'],
+    },
+    {
       // Texto corrido: legible en pantallas pequeñas.
       provider: fontProviders.google(),
       name: 'DM Sans',
       cssVariable: '--font-dm-sans',
-      weights: ['400 700'],
+      // Hasta 900: el rótulo de la fachada usa la versión más gruesa
+      weights: ['400 900'],
       styles: ['normal'],
       subsets: ['latin'],
       fallbacks: ['system-ui', 'sans-serif'],

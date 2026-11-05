@@ -4,22 +4,26 @@
    DESIGN TOKENS
    Toda la identidad visual vive aquí. Cambiar un color o una fuente en este
    bloque lo actualiza en todo el sitio (Tailwind genera las utilidades:
-   bg-night, text-pink, font-display, etc.).
+   bg-ink, text-mustard, font-display, etc.).
    ========================================================================== */
 @theme inline {
-  /* --- Paleta: "local de noche con rótulo de neón" --- */
-  --color-night: #0b0a10;        /* Fondo principal, casi negro con un toque violeta */
-  --color-night-soft: #15131c;   /* Superficies: tarjetas, cabecera */
-  --color-line: #2a2633;         /* Bordes y separadores */
-  --color-cream: #f7efe3;        /* Texto principal (crema cálido, no blanco puro) */
-  --color-muted: #a59fb0;        /* Texto secundario */
-  --color-pink: #ff3d9a;         /* Neón principal (guiño a la "Rosa La Maravillosa") */
-  --color-amber: #ffb627;        /* Neón cálido: queso fundido / bombilla */
-  --color-cyan: #3df5ff;         /* Acento puntual, usar con moderación */
+  /* --- Paleta: la del logo (negro, blanco y mostaza) + condimentos --- */
+  --color-ink: #0d0c0b;          /* Fondo principal: el negro del logo */
+  --color-ink-soft: #1a1816;     /* Superficies sobre negro: tarjetas, cabecera */
+  --color-line: #3a352f;         /* Bordes y separadores sobre negro */
+  --color-paper: #f6efe2;        /* Texto sobre negro y fondo "papel de ticket" */
+  --color-muted: #a39b90;        /* Texto secundario sobre negro */
+  --color-faded: #6b6359;        /* Texto secundario sobre papel o mostaza */
+  --color-mustard: #f7ac37;      /* Color de marca: el naranja mostaza del logo */
+  --color-ketchup: #e5482d;      /* Acento cálido, con moderación */
+  --color-pickle: #9cc14a;       /* Acento puntual: estado "abierto" */
+  --color-toast: #d98a3d;        /* Pan tostado: solo para la ilustración de la burger */
 
   /* --- Tipografías (variables generadas por la Fonts API, ver astro.config.mjs) --- */
-  --font-neon: var(--font-tilt-neon);
-  --font-display: var(--font-anton);
+  --font-display: var(--font-lilita-one);
+  --font-condensed: var(--font-anton);
+  --font-hand: var(--font-gochi-hand);
+  --font-mono: var(--font-space-mono);
   --font-sans: var(--font-dm-sans);
 }
 
@@ -32,19 +36,31 @@
     /* Compensa la cabecera fija al saltar a un ancla (#carta, #visitanos...) */
     scroll-padding-top: 5rem;
     color-scheme: dark;
+    /* También aquí (no solo en body): si no, el móvil amplía la página hasta lo
+       que sobresale (las cintas) antes de recortarlo y se ve "alejada" */
+    overflow-x: clip;
   }
 
   body {
-    @apply bg-night font-sans text-cream antialiased;
-    /* Textura sutil de pared de ladrillo oscura detrás del neón */
-    background-image:
-      radial-gradient(ellipse at top, rgb(255 61 154 / 0.08), transparent 60%),
-      repeating-linear-gradient(0deg, transparent 0 38px, rgb(255 255 255 / 0.018) 38px 40px),
-      repeating-linear-gradient(90deg, transparent 0 78px, rgb(255 255 255 / 0.012) 78px 80px);
+    @apply bg-ink font-sans text-paper antialiased;
+    /* Las cintas inclinadas sobresalen del ancho: que no generen scroll lateral */
+    overflow-x: clip;
+  }
+
+  /* Grano fotográfico muy sutil sobre toda la página (ruido SVG en un data URI).
+     Sin mix-blend-mode: una capa fija con fusión obliga a repintar en cada scroll. */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    pointer-events: none;
+    opacity: 0.06;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
 
   h1, h2, h3 {
-    @apply font-display uppercase tracking-wide;
+    @apply font-display uppercase;
   }
 
   /* Con Lenis activo, el scroll suave lo hace Lenis, no el navegador */
@@ -54,77 +70,87 @@
 
   /* Foco visible y coherente con la marca para navegación por teclado */
   :focus-visible {
-    @apply outline-2 outline-offset-4 outline-amber;
+    @apply outline-3 outline-offset-4 outline-mustard;
   }
 
   ::selection {
-    @apply bg-pink text-night;
+    @apply bg-mustard text-ink;
   }
 }
 
 /* ==========================================================================
-   EFECTO NEÓN
-   Utilidades funcionales: aceptan cualquier color de la paleta.
-     <span class="neon-pink">Texto</span>      → texto con brillo de neón
-     <a class="glow-amber">Botón</a>          → borde/caja con brillo
-   El "tubo" se pinta casi blanco y el halo con el color elegido, que es como
-   se ve un neón real.
+   ESTÉTICA DE PEGATINA / IMPRESO
+   Sombras duras desplazadas, sin desenfoque, como una pegatina o un sello
+   de tinta. Aceptan cualquier color de la paleta:
+     <a class="pop-paper">Botón</a>          → caja con sombra dura
+     <span class="pop-text-ketchup">Txt</span> → texto con sombra dura
    ========================================================================== */
+@utility pop-* {
+  --pop: --value(--color-*);
+  box-shadow: 5px 5px 0 var(--pop);
+}
+
+@utility pop-text-* {
+  --pop: --value(--color-*);
+  text-shadow: 0.06em 0.06em 0 var(--pop);
+}
+
+/* Textura de impresión gastada, como la del logo: motas sueltas que dejan ver
+   el fondo. Es una máscara (ruido SVG con umbral alto), así que no pinta nada. */
+@utility distressed {
+  --distress: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='2' seed='4'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 -18 14.3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  -webkit-mask-image: var(--distress);
+  mask-image: var(--distress);
+}
+
+/* Sombra suave y realista bajo cada ingrediente del despiece */
+@utility food-shadow {
+  filter: drop-shadow(0 14px 14px rgb(0 0 0 / 0.55));
+}
+
+/* Sombra dura para dibujos SVG (sigue la silueta, no la caja) */
+@utility pop-drop {
+  filter: drop-shadow(4px 5px 0 var(--color-ink));
+}
+
+/* Neón encendido, como los carteles del local: el tubo va casi blanco y el
+   halo en el color elegido. Vale para texto y para SVG con currentColor.
+     <h3 class="neon-ketchup">Quiero salir…</h3>
+   El halo va en `em`: crece con el texto y no emborrona los dibujos pequeños.
+   El brillo es estático; para encenderlo/parpadear, `data-neon` (motion.ts). */
 @utility neon-* {
   --neon: --value(--color-*);
-  color: color-mix(in srgb, var(--neon) 30%, white);
-  text-shadow:
-    0 0 2px #fff,
-    0 0 6px var(--neon),
-    0 0 14px var(--neon),
-    0 0 32px var(--neon),
-    0 0 64px var(--neon);
+  color: color-mix(in srgb, var(--neon) 55%, var(--color-paper));
+  filter: drop-shadow(0 0 0.03em var(--neon)) drop-shadow(0 0 0.12em var(--neon)) drop-shadow(0 0 0.35em var(--neon));
 }
 
-@utility glow-* {
-  --neon: --value(--color-*);
-  border-color: var(--neon);
-  box-shadow:
-    0 0 4px var(--neon),
-    0 0 16px color-mix(in srgb, var(--neon) 60%, transparent),
-    inset 0 0 12px color-mix(in srgb, var(--neon) 35%, transparent);
+/* Pared de ladrillo, como la del local: dibuja solo las juntas (es una máscara),
+   en el color de fondo del elemento. El ladrillo es el fondo de debajo.
+     <div class="brick-mortar absolute inset-0 bg-ink"></div> */
+@utility brick-mortar {
+  --mortar: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='84' height='44'%3E%3Cpath d='M0 1.5H84M0 23.5H84M1.5 0V22M43.5 22V44' stroke='white' stroke-width='3'/%3E%3C/svg%3E");
+  -webkit-mask-image: var(--mortar);
+  mask-image: var(--mortar);
 }
 
-/* Brillo para dibujos SVG de trazo (stroke="currentColor").
-   drop-shadow en CSS en lugar de filtros SVG: el navegador lo rasteriza una vez
-   y se puede mover con transform sin recalcular el desenfoque en cada frame. */
-@utility glow-stroke {
-  filter:
-    drop-shadow(0 0 1.5px currentColor)
-    drop-shadow(0 0 6px currentColor)
-    drop-shadow(0 0 16px color-mix(in srgb, currentColor 70%, transparent));
+/* Bordes perforados de ticket arriba y abajo (máscara: no pinta nada encima) */
+@utility ticket-edge {
+  --hole: 7px;
+  mask:
+    radial-gradient(circle at 50% 0, transparent var(--hole), #000 calc(var(--hole) + 0.5px)) top / 22px 51% repeat-x,
+    radial-gradient(circle at 50% 100%, transparent var(--hole), #000 calc(var(--hole) + 0.5px)) bottom / 22px 51% repeat-x;
 }
 
-/* Parpadeo de neón viejo. Se aplica a letras sueltas para que no parpadee todo */
-@utility flicker {
-  animation: neon-flicker 6s infinite;
+/* Línea de puntos entre nombre y precio, como en un ticket impreso */
+@utility dot-leader {
+  flex: 1;
+  min-width: 1.5rem;
+  border-bottom: 2px dotted currentColor;
+  opacity: 0.35;
+  translate: 0 -0.3em;
 }
 
-@keyframes neon-flicker {
-  0%, 18%, 22%, 25%, 53%, 57%, 100% { opacity: 1; }
-  20%, 24%, 55% { opacity: 0.35; }
-}
-
-/* Encendido inicial del rótulo al cargar la página */
-@utility power-on {
-  animation: neon-power-on 1.6s ease-out both;
-}
-
-@keyframes neon-power-on {
-  0%   { opacity: 0; }
-  10%  { opacity: 0.8; }
-  12%  { opacity: 0.1; }
-  20%  { opacity: 1; }
-  22%  { opacity: 0.2; }
-  40%, 100% { opacity: 1; }
-}
-
-/* Accesibilidad: sin parpadeos para quien prefiere menos movimiento */
+/* Accesibilidad: sin animaciones CSS para quien prefiere menos movimiento */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
 

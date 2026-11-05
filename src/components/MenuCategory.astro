@@ -1,15 +1,16 @@
 ---
 /**
- * Una categoría de la carta en /carta: tarjetas para platos con ingredientes,
- * o lista compacta nombre-precio cuando la categoría es `compact` (bebidas).
+ * Una categoría de la carta en /carta, impresa como un ticket de barra:
+ * papel con bordes perforados, letra de impresora y puntos hasta el precio.
+ * Los platos con ingredientes los listan debajo; las categorías `compact`
+ * (bebidas) quedan en una sola línea nombre-precio.
  */
 import { formatPrice, type MenuCategory } from '../data/menu';
-import MenuCard from './MenuCard.astro';
 import SectionHeading from './SectionHeading.astro';
 
 interface Props {
   category: MenuCategory;
-  accent?: 'pink' | 'amber' | 'cyan';
+  accent?: 'mustard' | 'ketchup' | 'pickle';
 }
 
 const { category, accent } = Astro.props;
@@ -17,30 +18,31 @@ const titleId = `${category.id}-title`;
 ---
 
 <section id={category.id} aria-labelledby={titleId} class="px-4 py-16 sm:px-6">
-  <div class="mx-auto max-w-6xl">
+  <div class="mx-auto max-w-2xl">
     <SectionHeading id={titleId} eyebrow={category.eyebrow} title={category.title} accent={accent} />
 
-    {category.note && <p class="-mt-6 mb-10 text-center text-muted" data-reveal>{category.note}</p>}
+    <div class="bg-paper px-5 py-10 font-mono text-ink ticket-edge sm:px-10" data-reveal>
+      {category.note && <p class="mb-6 border-b-2 border-dashed border-ink/30 pb-6 text-center text-sm">{category.note}</p>}
 
-    {
-      category.compact ? (
-        <ul class="mx-auto max-w-md divide-y divide-line rounded-2xl border-2 border-line bg-night-soft px-6" data-reveal>
-          {category.items.map((item) => (
-            <li class="flex items-baseline justify-between gap-4 py-4">
-              <span class="font-display text-xl tracking-wide uppercase">{item.name}</span>
-              {item.price !== undefined && <span class="font-display text-xl">{formatPrice(item.price)}</span>}
+      <ul class:list={[category.compact ? 'space-y-3' : 'space-y-7']}>
+        {
+          category.items.map((item) => (
+            <li>
+              <p class="flex items-baseline gap-3">
+                <span class="font-display text-lg leading-tight uppercase sm:text-xl">{item.name}</span>
+                <span class="dot-leader" aria-hidden="true" />
+                <span class="shrink-0 font-bold">
+                  {item.price !== undefined ? formatPrice(item.price) : 'Pregunta en barra'}
+                </span>
+              </p>
+
+              {item.tags && <p class="mt-1 text-xs font-bold text-ketchup uppercase">{item.tags.join(' · ')}</p>}
+              {item.description && <p class="mt-1 text-sm font-bold">{item.description}</p>}
+              {item.ingredients && <p class="mt-1 text-sm text-faded">{item.ingredients.join(' / ')}</p>}
             </li>
-          ))}
-        </ul>
-      ) : (
-        <ul class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {category.items.map((item) => (
-            <li data-reveal>
-              <MenuCard item={item} />
-            </li>
-          ))}
-        </ul>
-      )
-    }
+          ))
+        }
+      </ul>
+    </div>
   </div>
 </section>

@@ -1,0 +1,49 @@
+---
+/**
+ * Sello redondo de la marca: el emblema de la "B" entre panes (el mismo del
+ * favicon) rodeado de un texto circular. Es decorativo; quien lo usa decide
+ * tamaño y posición con `class`. Se anima desde fuera (Hero: "se estampa").
+ */
+import { site } from '../data/site';
+
+interface Props {
+  class?: string;
+  // Admite atributos extra (p. ej. data-* para seleccionarlo desde un script)
+  [attr: `data-${string}`]: unknown;
+}
+
+const { class: className, ...attrs } = Astro.props;
+
+// Texto del anillo: el mismo que el cartel de la pared del local
+const ring = `${site.name} · Smash since ${site.since} · `;
+---
+
+<svg viewBox="0 0 200 200" class:list={['overflow-visible', className]} aria-hidden="true" {...attrs}>
+  <defs>
+    <path id="stamp-ring" d="M100 100 m-71 0 a71 71 0 1 1 142 0 a71 71 0 1 1 -142 0" />
+  </defs>
+
+  <circle cx="100" cy="100" r="96" class="fill-mustard" />
+  <circle cx="100" cy="100" r="88" fill="none" class="stroke-ink" stroke-width="2.5" stroke-dasharray="1 5" stroke-linecap="round" />
+
+  <text class="fill-ink font-display uppercase" font-size="17">
+    <textPath href="#stamp-ring" textLength="440" lengthAdjust="spacing">{ring}</textPath>
+  </text>
+
+  <circle cx="100" cy="100" r="54" class="fill-ink" />
+
+  <!-- Emblema: pan de arriba con sésamo, la "B" y pan de abajo (coordenadas del favicon) -->
+  <g transform="translate(78.5 70) scale(1.05)">
+    <path class="fill-mustard" d="M0 12.5A19 12.5 0 0 1 38 12.5Z" />
+    <g class="fill-ink">
+      <circle cx="15" cy="4.6" r="1" /><circle cx="19.5" cy="4.6" r="1" /><circle cx="24" cy="4.6" r="1" />
+      <circle cx="12.5" cy="8.8" r="1" /><circle cx="17" cy="8.8" r="1" /><circle cx="21.5" cy="8.8" r="1" /><circle cx="26" cy="8.8" r="1" />
+    </g>
+    <path
+      class="fill-paper"
+      fill-rule="evenodd"
+      d="M0.5 14H36.5Q39.5 14 39.5 17V29Q39.5 31.5 36.5 32Q41 32.5 41 35.5V46Q41 48.5 38.5 48.5H0.5ZM14.5 19.5V27.5H25V19.5ZM15 37.5V44H26V37.5Z"
+    />
+    <path class="fill-mustard" d="M0 51H10L13 54L16 51H38V52.5C38 55 35 57 31 57H7C3 57 0 55 0 52.5Z" />
+  </g>
+</svg>

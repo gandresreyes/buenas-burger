@@ -1,0 +1,54 @@
+---
+/**
+ * Botón-enlace en píldora.
+ * - `primary`: mostaza con un círculo negro y una flecha que se desliza al pasar el ratón.
+ * - `ghost`: cristal translúcido (fondo difuminado) con borde fino, para acciones secundarias.
+ * `external` abre en otra pestaña y lo anuncia a los lectores de pantalla.
+ */
+interface Props {
+  href: string;
+  variant?: 'primary' | 'ghost';
+  external?: boolean;
+  class?: string;
+}
+
+const { href, variant = 'primary', external = false, class: className } = Astro.props;
+
+// Clases completas por variante (Tailwind solo genera las que ve escritas)
+const styles = {
+  primary: 'bg-mustard text-ink pl-6 pr-1.5 hover:bg-paper',
+  ghost: 'border border-paper/15 bg-paper/5 px-6 text-paper backdrop-blur-md hover:border-paper/40 hover:bg-paper/10',
+}[variant];
+---
+
+<a
+  href={href}
+  target={external ? '_blank' : undefined}
+  rel={external ? 'noopener' : undefined}
+  class:list={[
+    'group inline-flex h-13 items-center gap-4 rounded-full font-sans text-base font-semibold normal-case transition-colors duration-300 active:scale-[0.98]',
+    styles,
+    className,
+  ]}
+>
+  <slot />
+  {external && <span class="sr-only"> (se abre en otra pestaña)</span>}
+
+  {
+    variant === 'primary' && (
+      <span class="grid size-10 place-items-center rounded-full bg-ink text-mustard" aria-hidden="true">
+        {/* Ventana de una flecha: la visible sale por la derecha y entra la otra */}
+        <span class="w-5 overflow-hidden">
+        <span class="flex w-5 transition-transform duration-300 ease-out group-hover:translate-x-full">
+          <svg class="-ml-5 size-5 shrink-0" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 10h12M11 5l5 5-5 5" />
+          </svg>
+          <svg class="size-5 shrink-0" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 10h12M11 5l5 5-5 5" />
+          </svg>
+        </span>
+        </span>
+      </span>
+    )
+  }
+</a>

@@ -1,0 +1,60 @@
+---
+/**
+ * "La pared": los dos neones del interior del local sobre una pared de ladrillo
+ * oscura, como en las fotos. El cartel redondo de la casa (WallSign) y "Quiero
+ * salir en tus stories", el del sofá. Se encienden con un parpadeo al entrar en
+ * pantalla (`data-neon`) y luego alguna letra hace cortocircuito de vez en
+ * cuando (`data-neon-fault`); sin JS o con "reducir movimiento" ya salen
+ * encendidos y quietos.
+ */
+import { site } from '../data/site';
+import WallSign from './WallSign.astro';
+---
+
+<section aria-labelledby="pared-title" class="relative overflow-hidden bg-ink-soft px-4 py-24 sm:px-6 md:py-32">
+  <!-- Juntas del ladrillo y viñeta oscura alrededor: la pared del local -->
+  <div class="brick-mortar pointer-events-none absolute inset-0 bg-ink" aria-hidden="true"></div>
+  <div
+    class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_25%,var(--color-ink)_90%)]"
+    aria-hidden="true"
+  >
+  </div>
+
+  <div class="relative mx-auto max-w-6xl">
+    <header data-reveal>
+      <p class="font-mono text-sm font-bold tracking-widest text-mustard">( Dentro del local )</p>
+      <h2 id="pared-title" class="mt-4 text-5xl leading-[0.95] sm:text-7xl">Hazte la foto</h2>
+      <p class="mt-4 max-w-md text-muted">
+        Los neones os esperan dentro: el de la casa en la pared y, encima del sofá, el de tus stories.
+      </p>
+    </header>
+
+    <div class="mt-16 grid items-center gap-16 md:mt-20 md:grid-cols-2 md:gap-10">
+      <WallSign lit class="mx-auto w-[min(78vw,24rem)]" />
+
+      <div class="mx-auto -rotate-3 md:mx-0">
+        <p class="neon-ketchup font-hand text-[clamp(3.75rem,17vw,7.5rem)] leading-[0.92] uppercase" data-neon>
+          <!-- Letras con el tubo "tocado": hacen cortocircuito (data-neon-fault) -->
+          <span class="block">Qui<span data-neon-fault>e</span>ro</span>{' '}
+          <span class="block">salir</span>{' '}
+          <span class="block text-[0.7em]">en tus</span>{' '}
+          <span class="block">Sto<span data-neon-fault>r</span>ies</span>
+          <span class="mt-2 block h-[0.05em] w-4/5 rounded-full bg-current" aria-hidden="true"></span>
+        </p>
+        {
+          site.social.instagram && (
+            <a
+              href={site.social.instagram}
+              target="_blank"
+              rel="noopener"
+              class="mt-8 inline-flex items-center gap-2 font-mono text-sm font-bold tracking-wider text-mustard uppercase hover:text-paper"
+            >
+              Etiquétanos en Instagram <span aria-hidden="true">→</span>
+              <span class="sr-only">(se abre en otra pestaña)</span>
+            </a>
+          )
+        }
+      </div>
+    </div>
+  </div>
+</section>

@@ -17,11 +17,19 @@ const year = new Date().getFullYear();
 
   {
     site.social.instagram && (
-      <a href={site.social.instagram} target="_blank" rel="noopener" class="mt-4 inline-block text-sm hover:text-pink">
+      <a href={site.social.instagram} target="_blank" rel="noopener" class="mt-4 inline-block text-sm hover:text-mustard">
         Instagram
       </a>
     )
   }
 
   <p class="mt-6 text-xs text-muted/70">© {year} {site.name}. Todos los derechos reservados.</p>
+
+  <!-- Crédito del estudio, en inglés a propósito: lang="en" para que los lectores de pantalla lo pronuncien bien -->
+  <p class="mt-3 font-mono text-xs text-muted/70" lang="en">
+    Designed &amp; built by{' '}
+    <a href="https://bygabo.dev" target="_blank" rel="noopener" class="font-bold text-muted hover:text-mustard">
+      bygabo.dev<span class="sr-only" lang="es"> (se abre en otra pestaña)</span>
+    </a>
+  </p>
 </footer>

@@ -1,69 +1,85 @@
 ---
 /**
- * Sección "Visítanos": dirección, horario y contacto.
+ * Sección "Visítanos" en rejilla tipo bento: la dirección en grande como pieza
+ * principal (toda la tarjeta enlaza a la ruta), al lado horario y contacto, y
+ * debajo el rótulo de la fachada para reconocer la entrada.
  * En lugar de incrustar Google Maps (cookies de terceros + peso) enlazamos a la
  * ruta; así no hace falta banner de cookies y la página carga más rápido.
  */
 import { site, openingHours } from '../data/site';
 import { formatShift } from '../lib/hours';
 import OpenSign from './OpenSign.astro';
-import SectionHeading from './SectionHeading.astro';
+import StoreSign from './StoreSign.astro';
 
 const { address, contact } = site;
 ---
 
-<section id="visitanos" aria-labelledby="visitanos-title" class="px-4 py-20 sm:px-6">
-  <div class="mx-auto max-w-5xl">
-    <SectionHeading id="visitanos-title" eyebrow="Te esperamos" title="Visítanos" />
+<section id="visitanos" aria-labelledby="visitanos-title" class="px-4 py-24 sm:px-6">
+  <div class="mx-auto max-w-6xl">
+    <header data-reveal>
+      <p class="font-mono text-sm font-bold tracking-widest text-mustard">( Te esperamos )</p>
+      <h2 id="visitanos-title" class="mt-4 text-5xl leading-[0.95] sm:text-7xl">Visítanos</h2>
+    </header>
 
-    <div class="grid gap-6 md:grid-cols-3">
-      <!-- Dirección -->
-      <div class="rounded-2xl border-2 border-line bg-night-soft p-6" data-reveal>
-        <h3 class="text-xl text-pink">Dónde</h3>
-        <address class="mt-4 not-italic">
-          {address.street}<br />
-          {address.postalCode} {address.city}
-        </address>
-        <a
-          href={address.mapsUrl}
-          target="_blank"
-          rel="noopener"
-          class="mt-4 inline-block font-bold text-amber underline-offset-4 hover:underline"
-        >
-          Abrir en Google Maps →
-        </a>
-      </div>
+    <div class="mt-14 grid gap-4 *:min-w-0 md:grid-cols-3 md:grid-rows-2">
+      <!-- Dirección: tarjeta principal, ocupa dos columnas y dos filas -->
+      <a
+        href={address.mapsUrl}
+        target="_blank"
+        rel="noopener"
+        class="group flex min-h-72 flex-col justify-between rounded-3xl bg-mustard p-8 text-ink md:col-span-2 md:row-span-2"
+        data-reveal
+      >
+        <p class="font-mono text-sm font-bold tracking-widest uppercase">Dónde</p>
+        <div>
+          <address class="font-display text-[clamp(1.6rem,6vw,4.5rem)] leading-[0.95] not-italic uppercase">
+            {address.street}
+          </address>
+          <p class="mt-3 text-lg">{address.postalCode} {address.city}</p>
+          <p class="mt-8 inline-flex items-center gap-2 font-mono text-sm font-bold tracking-wider uppercase">
+            Cómo llegar
+            <span class="inline-block transition-transform group-hover:translate-x-1" aria-hidden="true">→</span>
+            <span class="sr-only">(se abre Google Maps en otra pestaña)</span>
+          </p>
+        </div>
+      </a>
 
       <!-- Horario -->
-      <div class="rounded-2xl border-2 border-line bg-night-soft p-6" data-reveal>
-        <h3 class="text-xl text-pink">Horario</h3>
+      <div class="rounded-3xl border border-line bg-ink-soft p-8" data-reveal>
+        <h3 class="font-mono text-sm font-bold tracking-widest text-muted">Horario</h3>
         <dl class="mt-4 space-y-2">
           {
             openingHours.map(({ label, shifts }) => (
               <div>
                 <dt class="text-muted">{label}</dt>
                 {shifts.map((shift) => (
-                  <dd>{formatShift(shift)}</dd>
+                  <dd class="font-display text-2xl">{formatShift(shift)}</dd>
                 ))}
               </div>
             ))
           }
         </dl>
-        <div class="mt-4"><OpenSign /></div>
+        <div class="mt-5"><OpenSign /></div>
       </div>
 
       <!-- Contacto -->
-      <div class="rounded-2xl border-2 border-line bg-night-soft p-6" data-reveal>
-        <h3 class="text-xl text-pink">Contacto</h3>
+      <div class="rounded-3xl border border-line bg-ink-soft p-8" data-reveal>
+        <h3 class="font-mono text-sm font-bold tracking-widest text-muted">Contacto</h3>
         <ul class="mt-4 space-y-2">
           <li>
-            <a href={`tel:${contact.phoneHref}`} class="hover:text-amber">{contact.phone}</a>
+            <a href={`tel:${contact.phoneHref}`} class="font-display text-2xl hover:text-mustard">{contact.phone}</a>
           </li>
           <li>
-            <a href={`mailto:${contact.email}`} class="break-all hover:text-amber">{contact.email}</a>
+            <a href={`mailto:${contact.email}`} class="break-all hover:text-mustard">{contact.email}</a>
           </li>
         </ul>
         <p class="mt-4 text-sm text-muted">No hacemos reservas: ven directamente y pide en barra.</p>
+      </div>
+
+      <!-- La fachada: así se reconoce la entrada -->
+      <div class="rounded-3xl border border-line bg-ink-soft p-6 sm:p-8 md:col-span-3" data-reveal>
+        <h3 class="font-mono text-sm font-bold tracking-widest text-muted">Busca este rótulo</h3>
+        <StoreSign class="mt-5" />
       </div>
     </div>
   </div>

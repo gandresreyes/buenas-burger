@@ -17,6 +17,9 @@ const { title = `${site.name} · ${site.tagline}`, description = site.descriptio
 // URL canónica: solo se genera si `site` está definido en astro.config.mjs
 const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : undefined;
 
+// Imagen al compartir: las redes piden URL absoluta, así que depende de `site`
+const ogImage = Astro.site ? new URL('/og-image.jpg', Astro.site).href : '/og-image.jpg';
+
 // Schema.org Restaurant: ayuda a Google a mostrar horario, dirección y teléfono
 const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const jsonLd = {
@@ -58,7 +61,7 @@ const jsonLd = {
     {canonical && <link rel="canonical" href={canonical} />}
 
     <!-- Color de la barra del navegador en móvil -->
-    <meta name="theme-color" content="#0b0a10" />
+    <meta name="theme-color" content="#0d0c0b" />
     <!-- Favicon: SVG para navegadores modernos, .ico de respaldo e icono para iPhone -->
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -71,11 +74,17 @@ const jsonLd = {
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     {canonical && <meta property="og:url" content={canonical} />}
-    <!-- TODO: añadir og:image (1200×630) cuando tengamos fotos del local -->
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={`Smash burger doble con cheddar bajo el cartel de ${site.name}`} />
+    <meta name="twitter:card" content="summary_large_image" />
 
-    <!-- Fuentes: solo precargamos la del rótulo, que es lo primero que se ve -->
-    <Font cssVariable="--font-tilt-neon" preload />
+    <!-- Fuentes: solo precargamos la de los titulares, que es lo primero que se ve -->
+    <Font cssVariable="--font-lilita-one" preload />
+    <Font cssVariable="--font-space-mono" />
     <Font cssVariable="--font-anton" />
+    <Font cssVariable="--font-gochi-hand" />
     <Font cssVariable="--font-dm-sans" />
 
     <script is:inline type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
@@ -84,7 +93,7 @@ const jsonLd = {
     <!-- Enlace de salto para usuarios de teclado y lectores de pantalla -->
     <a
       href="#contenido"
-      class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:rounded focus:bg-amber focus:px-4 focus:py-2 focus:text-night"
+      class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:bg-mustard focus:px-4 focus:py-2 focus:text-ink"
     >
       Saltar al contenido
     </a>

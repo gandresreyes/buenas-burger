@@ -22,3 +22,6 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# fotos originales del despiece (pesadas): solo se versionan las procesadas de src/assets/burger/
+fotos-despiece/

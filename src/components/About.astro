@@ -1,44 +1,83 @@
 ---
 /**
- * Sección "Nosotros": qué hace especial a la casa, en tres puntos.
+ * Sección "Nosotros": un manifiesto en letra grande que se "enciende" palabra a
+ * palabra al hacer scroll, y debajo los tres puntos fuertes de la casa.
+ * Va sobre fondo mostaza (el color del logo) para romper el negro de la página.
+ *
+ * Mejora progresiva: el texto sale entero y legible; solo con JS y movimiento
+ * permitido las palabras empiezan atenuadas y se iluminan con el scroll.
  */
-import SectionHeading from './SectionHeading.astro';
+const manifesto =
+  'Aplastamos vaca madurada contra la plancha hasta que los bordes crujen. La metemos en pan de patata con salsas de la casa. Y cualquiera te la hacemos sin gluten.';
+
+// Palabras que van resaltadas en blanco (se comparan sin puntuación)
+const highlight = new Set(['crujen', 'patata', 'gluten']);
+const words = manifesto.split(' ').map((word) => ({ word, strong: highlight.has(word.replace(/[.,]/g, '')) }));
 
 const features = [
   {
     title: 'Smash de verdad',
     text: 'Blend de vaca madurada aplastado en la plancha bien caliente. Bordes crujientes, centro jugoso.',
-    color: 'text-pink',
   },
   {
     title: 'Pan de patata',
     text: 'Esponjoso y ligeramente dulce, aguanta la salsa sin deshacerse hasta el último bocado.',
-    color: 'text-amber',
   },
   {
     title: 'Sin gluten',
     text: 'Cualquier burger de la carta se puede adaptar. Pregúntanos y te la preparamos.',
-    color: 'text-cyan',
   },
 ];
 ---
 
-<section id="nosotros" aria-labelledby="nosotros-title" class="px-4 py-20 sm:px-6">
+<section id="nosotros" aria-labelledby="nosotros-title" class="bg-mustard px-4 py-24 text-ink sm:px-6 md:py-32" data-manifesto>
   <div class="mx-auto max-w-6xl">
-    <SectionHeading id="nosotros-title" eyebrow="Hechas con cariño" title="Por qué son buenas" accent="amber" />
+    <h2 id="nosotros-title" class="font-mono text-sm font-bold tracking-widest normal-case" data-reveal>
+      ( Por qué son buenas )
+    </h2>
 
-    <ul class="grid gap-10 md:grid-cols-3">
+    <p class="mt-8 font-display text-[clamp(2rem,6.2vw,5rem)] leading-[1.02] uppercase">
       {
-        features.map(({ title, text, color }, i) => (
-          <li class="text-center md:text-left" data-reveal>
-            <span class:list={['font-neon text-5xl', color]} style="text-shadow: 0 0 18px currentColor" aria-hidden="true">
-              0{i + 1}
-            </span>
-            <h3 class="mt-3 text-2xl">{title}</h3>
-            <p class="mt-3 text-muted">{text}</p>
+        words.map(({ word, strong }) => (
+          <>
+            <span class:list={['inline-block', strong && 'text-paper pop-text-ink']} data-word>
+              {word}
+            </span>{' '}
+          </>
+        ))
+      }
+    </p>
+
+    <ul class="mt-20 grid gap-10 border-t-2 border-ink/80 pt-10 md:grid-cols-3 md:gap-12">
+      {
+        features.map(({ title, text }) => (
+          <li data-reveal>
+            <h3 class="text-xl">{title}</h3>
+            <p class="mt-3 max-w-xs text-ink/75">{text}</p>
           </li>
         ))
       }
     </ul>
   </div>
 </section>
+
+<script>
+  import { gsap, MOTION_OK } from '../lib/motion';
+
+  gsap.matchMedia().add(MOTION_OK, () => {
+    const section = document.querySelector('[data-manifesto]');
+    if (!section) return;
+
+    // Cada palabra pasa de atenuada a plena según avanza el scroll
+    gsap.fromTo(
+      section.querySelectorAll('[data-word]'),
+      { opacity: 0.15 },
+      {
+        opacity: 1,
+        ease: 'none',
+        stagger: 0.1,
+        scrollTrigger: { trigger: section, start: 'top 75%', end: 'center 45%', scrub: true },
+      },
+    );
+  });
+</script>

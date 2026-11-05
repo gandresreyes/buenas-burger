@@ -1,71 +1,68 @@
 ---
 /**
- * Portada: el rótulo de neón del local como protagonista, a pantalla completa.
- * Al hacer scroll el rótulo se aleja (escala + opacidad) y da paso al despiece
- * de la burger, que es la siguiente sección.
+ * Portada: el nombre compuesto como el logo (misma familia de letra, "BUR/GERS"
+ * en dos líneas en móvil y textura de impresión gastada) y el sello de la marca
+ * que "se estampa" encima al cargar. Al hacer scroll el sello gira, el bloque
+ * se aleja y da paso a la cinta y al despiece de la burger.
  */
 import { site } from '../data/site';
 import OpenSign from './OpenSign.astro';
+import BrandStamp from './BrandStamp.astro';
+import Button from './Button.astro';
 ---
 
-<section id="inicio" class="relative flex min-h-svh flex-col items-center justify-center px-4 pt-24 pb-16 text-center sm:px-6">
+<section id="inicio" aria-labelledby="inicio-title" class="relative flex min-h-svh flex-col items-center justify-center px-4 pt-24 pb-20 text-center sm:px-6">
   <div class="will-change-transform" data-hero-content>
     <OpenSign />
 
-    <!-- Rótulo: cada palabra "se enciende" al cargar y algunas letras parpadean -->
-    <h1 class="mt-8 font-neon leading-[0.9] normal-case">
-      <span class="power-on block text-7xl neon-pink sm:text-9xl lg:text-[11rem]">
-        Bue<span class="flicker">n</span>as
-      </span>
-      <span class="power-on block text-6xl neon-amber [animation-delay:400ms] sm:text-8xl lg:text-9xl">
-        Burgers
-      </span>
-    </h1>
+    <div class="relative mx-auto mt-8 w-fit">
+      <!-- Sin espacios entre "Bur" y "gers": el lector de pantalla lee "Burgers" -->
+      <h1 id="inicio-title" class="leading-[0.82] tracking-[-0.02em] distressed" data-hero-title>
+        <span class="block text-[19vw] text-paper sm:text-8xl lg:text-9xl">Buenas</span>
+        <span class="block text-mustard"
+          ><span class="block text-[34vw] sm:inline sm:text-[10rem] lg:text-[13rem]">Bur</span><span
+            class="block text-[34vw] sm:inline sm:text-[10rem] lg:text-[13rem]">gers</span
+          ></span
+        >
+      </h1>
+
+      <!-- Sello: encima de la esquina del titular, como si lo hubieran estampado -->
+      <BrandStamp
+        class="absolute -top-[23vw] -right-[1vw] w-[20vw] rotate-12 will-change-transform sm:-top-20 sm:-right-20 sm:w-40 lg:-top-24 lg:-right-16 lg:w-48"
+        data-hero-stamp
+      />
+    </div>
 
     <p class="mx-auto mt-8 max-w-md text-lg text-muted">
-      Smash burgers de vaca madurada, pan de patata y salsas de la casa. En pleno centro de {site.address.city}.
+      Smash burgers de vaca madurada, pan de patata y salsas de la casa. En pleno centro de {site.address.city}.{' '}
+      <strong class="text-paper">Todas, también sin gluten.</strong>
     </p>
 
-    <div class="mt-10 flex flex-wrap justify-center gap-4">
-      <a
-        href="/carta"
-        class="rounded-full border-2 px-7 py-3 font-display text-lg tracking-wider text-cream uppercase glow-pink transition-transform hover:-translate-y-0.5"
-      >
-        Ver la carta
-      </a>
-      <a
-        href={site.address.mapsUrl}
-        target="_blank"
-        rel="noopener"
-        class="rounded-full border-2 border-line px-7 py-3 font-display text-lg tracking-wider uppercase transition-colors hover:border-amber hover:text-amber"
-      >
-        Cómo llegar
-      </a>
+    <div class="mt-10 flex flex-wrap justify-center gap-3">
+      <Button href="/carta">Ver la carta</Button>
+      <Button href={site.address.mapsUrl} variant="ghost" external>Cómo llegar</Button>
     </div>
   </div>
 
-  <!-- Indicador de scroll: un tubo de neón con una "gota" de luz bajando -->
   <a
     href="#la-rosa"
-    class="absolute bottom-6 left-1/2 flex -translate-x-1/2 flex-col items-center gap-3 text-[11px] font-bold tracking-[0.3em] text-muted uppercase hover:text-cream"
+    class="absolute bottom-6 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2 font-mono text-xs font-bold tracking-[0.25em] text-muted uppercase hover:text-paper"
     data-hero-cue
   >
-    Descubre la Rosa
-    <span class="relative h-12 w-px overflow-hidden bg-line" aria-hidden="true">
-      <span class="scroll-drop absolute inset-x-0 top-0 h-4 bg-pink shadow-[0_0_8px_var(--color-pink)]"></span>
-    </span>
+    Desmonta la Rosa
+    <span class="scroll-bounce text-lg text-mustard" aria-hidden="true">↓</span>
   </a>
 </section>
 
 <style>
-  /* Gota de luz que recorre el tubo del indicador de scroll */
-  .scroll-drop {
-    animation: scroll-drop 1.8s cubic-bezier(0.6, 0, 0.4, 1) infinite;
+  /* Flecha del indicador de scroll: rebota como una burger recién aplastada */
+  .scroll-bounce {
+    animation: scroll-bounce 1.6s cubic-bezier(0.5, 0, 0.5, 1) infinite;
   }
 
-  @keyframes scroll-drop {
-    from { transform: translateY(-100%); }
-    to   { transform: translateY(300%); }
+  @keyframes scroll-bounce {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(6px); }
   }
 </style>
 
@@ -73,7 +70,23 @@ import OpenSign from './OpenSign.astro';
   import { gsap, MOTION_OK } from '../lib/motion';
 
   gsap.matchMedia().add(MOTION_OK, () => {
-    // El rótulo se aleja y se apaga a medida que la portada sale de pantalla
+    const stamp = document.querySelector('[data-hero-stamp]');
+    const title = document.querySelector('[data-hero-title]');
+
+    // Entrada: el sello cae desde arriba, golpea y el titular acusa el golpe
+    gsap
+      .timeline({ delay: 0.25 })
+      .from(stamp, { scale: 2.4, rotation: -40, autoAlpha: 0, duration: 0.45, ease: 'power4.in' })
+      .to(title, { scaleY: 0.94, scaleX: 1.02, duration: 0.08, ease: 'power1.out', transformOrigin: '50% 100%' })
+      .to(title, { scaleY: 1, scaleX: 1, duration: 0.5, ease: 'elastic.out(1, 0.4)' });
+
+    // Al bajar, el sello rueda y todo el bloque se aleja
+    gsap.to(stamp, {
+      rotation: '+=180',
+      ease: 'none',
+      scrollTrigger: { trigger: '#inicio', start: 'top top', end: 'bottom top', scrub: true },
+    });
+
     gsap.to('[data-hero-content]', {
       scale: 0.85,
       autoAlpha: 0,

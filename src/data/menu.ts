@@ -9,17 +9,23 @@
  * despiece. La "Rosa la Maravillosa" de la carta es la receta habitual.
  */
 
-/** Colores de neón disponibles (deben existir en la paleta de global.css) */
-export type NeonColor = 'pink' | 'amber' | 'cyan' | 'cream';
+/** Color de acento de cada plato: la sombra de su pegatina en la portada */
+export type Accent = 'mustard' | 'ketchup' | 'pickle';
 
 /**
  * Una capa de la burger para la animación de despiece.
- * `kind` decide qué dibujo SVG se usa (ver BurgerLayerArt.astro).
+ * - `kind` decide qué ilustración se usa (ver BurgerLayerArt.astro).
+ * - `photo` es el nombre de su foto en src/assets/burger/ (sin extensión). Si
+ *   la foto existe, sustituye a la ilustración; si no, se ve la ilustración.
+ *   Las fotos se preparan con `bun run fotos` (ver docs/fotos-despiece.md).
+ * - `photoScale` ajusta el ancho de la foto respecto a la burger (1 = entero),
+ *   por si alguna se ha hecho con otro encuadre.
  */
 export interface BurgerLayer {
-  kind: 'bun-top' | 'sauce' | 'onion-ring' | 'cheese' | 'patty' | 'bun-bottom';
+  kind: 'bun-top' | 'sauce-garlic' | 'sauce-bbq' | 'onion-ring' | 'cheese' | 'patty' | 'bun-bottom';
   label: string;
-  color: NeonColor;
+  photo: string;
+  photoScale?: number;
 }
 
 export interface MenuItem {
@@ -34,8 +40,8 @@ export interface MenuItem {
   price?: number;
   /** Etiquetas cortas: "Picante", "Campeonato de España 2026"… */
   tags?: string[];
-  /** Color del neón de la tarjeta (debe existir en la paleta de global.css) */
-  accent: Exclude<NeonColor, 'cream'>;
+  /** Color de acento de la tarjeta */
+  accent: Accent;
   /** Capas de arriba abajo para la animación de despiece (solo la destacada) */
   layers?: BurgerLayer[];
 }
@@ -44,7 +50,7 @@ export interface MenuCategory {
   /** Se usa como id de la sección en /carta: #hamburguesas, #entrantes… */
   id: string;
   title: string;
-  /** Antetítulo en neón */
+  /** Antetítulo (etiqueta tipo pegatina) */
   eyebrow: string;
   /** Aviso que aplica a toda la categoría */
   note?: string;
@@ -66,17 +72,17 @@ export const featuredBurger: MenuItem = {
     '2 carnes smash de vaca madurada',
   ],
   tags: ['La más vendida', 'Campeonato de España 2026'],
-  accent: 'pink',
+  accent: 'ketchup',
   // Orden de montaje visual, de arriba abajo. TODO: confirmar con el local.
   layers: [
-    { kind: 'bun-top', label: 'Pan de patata', color: 'amber' },
-    { kind: 'sauce', label: 'Salsa de ajo y parmesano deluxe', color: 'cream' },
-    { kind: 'onion-ring', label: 'Aro de cebolla rebozado en cerveza', color: 'cyan' },
-    { kind: 'sauce', label: 'Salsa BBQ bourbon', color: 'pink' },
-    { kind: 'cheese', label: 'Queso Monterrey Jack', color: 'amber' },
-    { kind: 'patty', label: 'Smash de vaca madurada', color: 'pink' },
-    { kind: 'patty', label: 'Y otra smash: siempre doble', color: 'pink' },
-    { kind: 'bun-bottom', label: 'Base de pan de patata', color: 'amber' },
+    { kind: 'bun-top', label: 'Pan de patata', photo: '01-pan-arriba' },
+    { kind: 'sauce-garlic', label: 'Salsa de ajo y parmesano deluxe', photo: '02-salsa-ajo-parmesano' },
+    { kind: 'onion-ring', label: 'Aro de cebolla rebozado en cerveza', photo: '03-aro-cebolla', photoScale: 0.93 },
+    { kind: 'sauce-bbq', label: 'Salsa BBQ bourbon', photo: '04-salsa-bbq' },
+    { kind: 'cheese', label: 'Queso Monterrey Jack', photo: '05-queso' },
+    { kind: 'patty', label: 'Smash de vaca madurada', photo: '06-carne' },
+    { kind: 'patty', label: 'Y otra smash: siempre doble', photo: '07-carne' },
+    { kind: 'bun-bottom', label: 'Base de pan de patata', photo: '08-pan-base' },
   ],
 };
 
@@ -94,7 +100,7 @@ const burgers: MenuItem[] = [
       'Cebolla caramelizada',
     ],
     price: 14.5,
-    accent: 'pink',
+    accent: 'ketchup',
   },
   {
     id: 'soul-burger',
@@ -108,7 +114,7 @@ const burgers: MenuItem[] = [
       'Tocineta al whisky',
     ],
     price: 14.5,
-    accent: 'amber',
+    accent: 'mustard',
   },
   {
     id: 'rosa-la-maravillosa',
@@ -124,7 +130,7 @@ const burgers: MenuItem[] = [
       'Nuestra salsa de ajo y parmesano',
     ],
     price: 14.5,
-    accent: 'pink',
+    accent: 'ketchup',
   },
   {
     id: 'doble-beiconeitor',
@@ -138,7 +144,7 @@ const burgers: MenuItem[] = [
       'Nuestra salsa smash',
     ],
     price: 14.5,
-    accent: 'cyan',
+    accent: 'pickle',
   },
   {
     id: 'cheesy-james',
@@ -153,14 +159,14 @@ const burgers: MenuItem[] = [
       'Pepinillo',
     ],
     price: 14.5,
-    accent: 'amber',
+    accent: 'mustard',
   },
   {
     id: 'original-smash',
     name: 'Original Smash',
     ingredients: ['Salsa de la casa', 'Carne de ternera smash', 'Cebolla', 'Pepinillos', 'Queso cheddar'],
     price: 8.9,
-    accent: 'cyan',
+    accent: 'pickle',
   },
   {
     // En Just Eat aparece como "SweerRenata": lo damos por errata de "Sweet". TODO: confirmar.
@@ -169,7 +175,7 @@ const burgers: MenuItem[] = [
     description: '¡Te enamorarás de Renata!',
     ingredients: ['Salsa de la casa', 'Carne de ternera', 'Queso cheddar', 'Pepinillos', 'Cebolla caramelizada'],
     price: 9.9,
-    accent: 'pink',
+    accent: 'ketchup',
   },
   {
     id: 'beiconeitor',
@@ -177,7 +183,7 @@ const burgers: MenuItem[] = [
     description: '¿Te gusta el beicon? ¡Esta es tu opción!',
     ingredients: ['Salsa de la casa', 'Carne de ternera smash', 'Cebolla', 'Queso cheddar', 'Doble beicon'],
     price: 9.9,
-    accent: 'amber',
+    accent: 'mustard',
   },
   {
     id: 'triple-smash',
@@ -192,7 +198,7 @@ const burgers: MenuItem[] = [
       'Queso cheddar',
     ],
     price: 14.5,
-    accent: 'cyan',
+    accent: 'pickle',
   },
   {
     id: 'ardiente-elisa',
@@ -201,7 +207,7 @@ const burgers: MenuItem[] = [
     ingredients: ['Salsa hotmayo', 'Lechuga', 'Tomate', 'Pollo crispy', 'Beicon'],
     price: 11.5,
     tags: ['Picante'],
-    accent: 'pink',
+    accent: 'ketchup',
   },
   {
     id: 'beicon-crispy',
@@ -209,7 +215,7 @@ const burgers: MenuItem[] = [
     description: 'Soy Elisa sin picante, pero con mucho sabor.',
     ingredients: ['Salsa de la casa', 'Lechuga', 'Pollo crispy', 'Beicon'],
     price: 11.5,
-    accent: 'amber',
+    accent: 'mustard',
   },
   {
     id: 'classic-smash',
@@ -226,7 +232,7 @@ const burgers: MenuItem[] = [
       'Nuestra carne smash',
     ],
     price: 9.9,
-    accent: 'cyan',
+    accent: 'pickle',
   },
 ];
 
@@ -248,7 +254,7 @@ export const menu: MenuCategory[] = [
         name: 'Tenders para 1',
         ingredients: ['5 tiras de pollo crujiente', 'Patatas fritas', 'Salsa BBQ', 'Nuestra salsa de ajo y parmesano'],
         price: 10.5,
-        accent: 'amber',
+        accent: 'mustard',
       },
       {
         // Sin precio: en Just Eat sale como "No disponible"
@@ -256,14 +262,14 @@ export const menu: MenuCategory[] = [
         name: 'Beicon Cheddar',
         description: '¡Fliparás!',
         ingredients: ['Patatas fritas', 'Baño de queso cheddar', 'Lluvia de beicon'],
-        accent: 'pink',
+        accent: 'ketchup',
       },
       {
         // Sin precio: en Just Eat sale como "No disponible"
         id: 'tequenos',
         name: 'Tequeños',
         ingredients: ['6 barritas de queso envueltas en masa de trigo', 'Ketchup', 'Nuestra salsa de ajo y parmesano'],
-        accent: 'cyan',
+        accent: 'pickle',
       },
     ],
   },
@@ -273,9 +279,9 @@ export const menu: MenuCategory[] = [
     eyebrow: 'Para acompañar',
     compact: true,
     items: [
-      { id: 'pepsi', name: 'Pepsi Original', price: 2.5, accent: 'cyan' },
-      { id: 'pepsi-max', name: 'Pepsi Max', price: 2.5, accent: 'cyan' },
-      { id: 'agua', name: 'Agua mineral', price: 2, accent: 'cyan' },
+      { id: 'pepsi', name: 'Pepsi Original', price: 2.5, accent: 'pickle' },
+      { id: 'pepsi-max', name: 'Pepsi Max', price: 2.5, accent: 'pickle' },
+      { id: 'agua', name: 'Agua mineral', price: 2, accent: 'pickle' },
     ],
   },
 ];
